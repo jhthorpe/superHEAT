@@ -8,9 +8,27 @@
 # .py script to generate the multitudes of ZMATs needed for
 # testing or performing thermochemical calculations
 #
-# HOW TO USE
+# -------------------------------------------
+# USER NOTES 
+#
+#
 #
 #  
+# -------------------------------------------
+# DEVELOPER NOTES 
+#
+# The script proceeds as follows:
+#	1. Docopt generates keywords and arguments from command line. 
+#
+#	If listing jobs:
+#	2. Job_List is created, and then queried via constraints from user
+#	
+#	If generating jobs:
+#	2. The ZMAT class is initialized from disk
+#	3. The Run  class is init
+#	4. The Job_List class is initialized
+#	5. user request recipies and jobs are generated 
+#
 # ADDING JOBS
 #   To add a new job follow these steps
 #	1. In the 
@@ -30,7 +48,7 @@
 """superHEAT
 
 Usage:
-    superHEAT.py --ZMAT=<zmat> --runfile=<run.sh>
+    superHEAT.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh>
     superHEAT.py --joblist
     superHEAT.py (-h | --help)
     superHEAT.py --version
@@ -72,14 +90,16 @@ class Option_List:
         self.dict = {}
 
         #The following are "required" options that must be tracked
-        self.update('calc'    , Option(abrv='XXX', default=None       ) )
-        self.update('basis'   , Option(abrv='YYY', default=None       ) )
-        self.update('frzcore' , Option(abrv='ZZZ', default=None       ) )
-        self.update('ccprog'  , Option(abrv='CCC', default='VCC'       ) )
-        self.update('abcd'    , Option(abrv='AAA', default='STANDARD' ) )
-        self.update('dboc'    , Option(abrv='DDD', default='OFF'      ) )
-        self.update('rel'     , Option(abrv='RRR', default='OFF'      ) )
-        self.update('newnorm' , Option(abrv='NNN', default='ON'       ) )
+        self.update('calc'    , Option(abrv = 'XXX', default = None       ) )
+        self.update('basis'   , Option(abrv = 'YYY', default = None       ) )
+        self.update('frzcore' , Option(abrv = 'ZZZ', default = None       ) )
+        self.update('ccprog'  , Option(abrv = 'CCC', default = 'VCC'      ) )
+        self.update('abcd'    , Option(abrv = 'AAA', default = 'STANDARD' ) )
+        self.update('dboc'    , Option(abrv = 'DDD', default = 'OFF'      ) )
+        self.update('rel'     , Option(abrv = 'RRR', default = 'OFF'      ) )
+        self.update('newnorm' , Option(abrv = 'NNN', default = 'ON'       ) )
+        self.update('multi'   , Option(abrv = None , default = 1          ) )
+        self.update('ref'     , Option(abrv = None , default = 'UHF'      ) )
 
     #print the options
     def print(self):
@@ -128,6 +148,8 @@ class ZMAT:
     def set_options(self, opt_list):
         for idx in range(len(self.all_lines)):
             for name, opt in opt_list.dict.items():
+                if opt.abrv is None:
+                    continue
                 if opt.value is None:
                     print("Option ", name, "had ", None, "as it's value")
                     exit
@@ -197,49 +219,118 @@ class Job_List:
         self.jobs = []
         self.zmat = copy.deepcopy(zmat)
         self.run  = copy.deepcopy(run)
+  
+        #basis set lists
+        self.XZ_list   = [     'PVDZ',      'PVTZ',      'PVQZ',      'PV5Z', 
+                               'PV6Z',      'PV7Z',      'PV8Z'              ]   
 
-        #Here we add the list of jobs. Note is it really important that you only 
-        # APPEND to this list
-        opts = Option_List()
-        opts.set('calc'   , 'SCF')
-        opts.set('basis'  , 'PVDZ')
-        opts.set('frzcore', 'OFF')
-        self.jobs.append(Job(num = len(self.jobs)+1, name = 'SCF/cc-pVDZ', 
-                             zmat = self.zmat, run = self.run, options = opts)) 
+        self.aXZ_list  = ['AUG-PVDZ' ,  'AUG-PVTZ',  'AUG-PVQZ',  'AUG-PV5Z', 
+                          'AUG-PV6Z' ,  'AUG-PV7Z',  'AUG-PV8Z'              ]
+
+        self.CXZ_list  = [    'PCVDZ',     'PCVTZ',     'PCVQZ',     'PCV5Z', 
+                              'PCV6Z',     'PCV7Z',     'PCV8Z'              ]
+
+        self.aCXZ_list = ['AUG-PCVDZ', 'AUG-PCVTZ', 'AUG-PCVQZ', 'AUG-PCV5Z', 
+                          'AUG-PCV6Z', 'AUG-PCV7Z', 'AUG-PCV8Z'              ]
+
+        self.make()
 
     #print all jobs
     def print(self):
         for idx in range(len(self.jobs)):
             self.jobs[idx].print()
 
+    #print all job names and ids
+    def print_names(self):
+        for job in self.jobs:
+            print(str(job.num).zfill(3), job.name)  
+
     #given a set of job ids, generate the jobs
     #note that the job ids begin at 1
-    def generate(self, jobs):
-        for idx in jobs:
-            self.jobs[idx-1].generate()
+    def generate(self):
+        for job in self.jobs:
+            job.generate()
+
+    #appends a new job with some set of options 
+    def append(self, name, options):
+        self.jobs.append(Job( len(self.jobs),
+                                        name, 
+                                   self.zmat, 
+                                    self.run,
+                                     options ))
+
+    #This is called at the end of init, and generates the actual list of jobs
+    #At the moment, this generates a HUGE list of jobs, which can 
+    def make(self):
+
+        #SCF
+        SCF_opts = Option_List()
+        SCF_opts.set(   'calc', 'SCF')
+        SCF_opts.set('frzcore', 'OFF')
+        for basis in self.XZ_list:
+            SCF_opts.set('basis', basis)
+            self.append('ae-SCF/' + basis, SCF_opts)
+        for basis in self.aXZ_list:
+            SCF_opts.set('basis', basis)
+            self.append('ae-SCF/' + basis, SCF_opts)
+        for basis in self.CXZ_list:
+            SCF_opts.set('basis', basis)
+            self.append('ae-SCF/' + basis, SCF_opts)
+        for basis in self.aCXZ_list:
+            SCF_opts.set('basis', basis)
+            self.append('ae-SCF/' + basis, SCF_opts)
+
+
+        #SDQ-MP4
+
+        #CCSD
+
+        #CCSD(T)
+
+        #CCSDT
+
+        #CCSDT(Q)_L
+
+        #CCSDTQ(P)_L
+
+        #SFDC
+
+        #DBOC
+
 
 #*************************************************************
 # Main function 
 
 #Global joblist
-#JOB_LIST = Job_List()
+JOB_LIST = Job_List(None, None)
 
 if __name__ == '__main__':
     
     #Process Docopts input
     args = docopt(__doc__, version="superHEAT 1.0")
-    print(args)
-    print(args['--ZMAT'])
+#    print(args)
+#    print(args['--ZMAT'])
 
-    #Read ZMAT
-    zmat = ZMAT(args['--ZMAT'])
-    zmat.print()
+    #if printing job ids
+    if args['--joblist']:
+        joblist = Job_List(None, None)
+        joblist.print_names() 
 
-    joblist = Job_List(zmat, None)
-    joblist.generate([1])
-    print("\n joblist is...")
-    joblist.print()
+    else:
 
-    zmat.print()
+        #Read ZMAT
+        zmat = ZMAT(args['--ZMAT'])
+        zmat.print()
 
+        #Read run.dummy
+        rundummy = None
+
+        joblist = Job_List(zmat, rundummy)
+
+        #Generate users from constrained 
+        print("\n joblist is...") #testin
+        joblist.print_names() #testing
+        joblist.print()
+
+        joblist.generate() #testing
 
