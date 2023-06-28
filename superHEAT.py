@@ -62,6 +62,7 @@ Options:
 
 from docopt import docopt
 import copy
+import sys
 
 #*************************************************************
 # Option class
@@ -122,6 +123,7 @@ class Option_List:
 # This contains all the lines of the user-supplied ZMAT
 #
 class ZMAT:
+    #initialize from file
     def __init__(self, file):
 
         print("Reading ZMAT from ", file)
@@ -134,14 +136,17 @@ class ZMAT:
         self.all_lines = f.readlines()
         f.close()
 
+
     #print the line strings
     def print(self):
         print(self.all_lines)
+
 
     #replace substring with new string
     def replace(self, old_str, new_str):
         for idx in range(len(self.all_lines)):
             self.all_lines[idx] = self.all_lines[idx].replace(old_str, new_str)
+
 
     #Given an Options_List, replace all matching abrv in the ZMAT with the appropriate
     # values 
@@ -152,8 +157,9 @@ class ZMAT:
                     continue
                 if opt.value is None:
                     print("Option ", name, "had ", None, "as it's value")
-                    exit
+                    sys.exit()
                 self.all_lines[idx] = self.all_lines[idx].replace(opt.abrv, opt.value)
+
 
     #write this zmat to a file
     def to_file(self, file):
@@ -161,6 +167,17 @@ class ZMAT:
             for line in self.all_lines:
                 f.write(line)
         f.close()
+
+    #returns the reference supplied in the file, or 'UHF' if none is found
+    def get_ref(self):
+        ref = 'UHF'
+  
+        for line in self.all_lines:
+            csv_line = line.split(",")
+            for csv in csv_line:
+                if 'REF=' in csv:
+                    ref = line.split("=")[-1]
+        return ref
 
 #*************************************************************
 # Job class
@@ -216,9 +233,10 @@ class Job:
 class Job_List:
 
     def __init__(self, zmat, run):
-        self.jobs = []
-        self.zmat = copy.deepcopy(zmat)
-        self.run  = copy.deepcopy(run)
+        self.jobs    = []
+        self.zmat    = copy.deepcopy(zmat)
+        self.run     = copy.deepcopy(run)
+        self.options = Option_List()
   
         #basis set lists
         self.XZ_list   = [     'PVDZ',      'PVTZ',      'PVQZ',      'PV5Z', 
@@ -235,21 +253,25 @@ class Job_List:
 
         self.make()
 
+
     #print all jobs
     def print(self):
         for idx in range(len(self.jobs)):
             self.jobs[idx].print()
+
 
     #print all job names and ids
     def print_names(self):
         for job in self.jobs:
             print(str(job.num).zfill(3), job.name)  
 
+
     #given a set of job ids, generate the jobs
     #note that the job ids begin at 1
     def generate(self):
         for job in self.jobs:
             job.generate()
+
 
     #appends a new job with some set of options 
     def append(self, name, options):
@@ -259,27 +281,26 @@ class Job_List:
                                     self.run,
                                      options ))
 
+    #checks the ZMAT for the reference value 
+    def set_ref(self):
+        if (self.zmat != None):
+            self.options.set('ref', zmat.get_ref())
+        
+
     #This is called at the end of init, and generates the actual list of jobs
     #At the moment, this generates a HUGE list of jobs, which can 
     def make(self):
 
+        self.set_ref()
+
         #SCF
-        SCF_opts = Option_List()
+        SCF_opts = copy.deepcopy(self.options) 
         SCF_opts.set(   'calc', 'SCF')
         SCF_opts.set('frzcore', 'OFF')
-        for basis in self.XZ_list:
-            SCF_opts.set('basis', basis)
-            self.append('ae-SCF/' + basis, SCF_opts)
-        for basis in self.aXZ_list:
-            SCF_opts.set('basis', basis)
-            self.append('ae-SCF/' + basis, SCF_opts)
-        for basis in self.CXZ_list:
-            SCF_opts.set('basis', basis)
-            self.append('ae-SCF/' + basis, SCF_opts)
-        for basis in self.aCXZ_list:
-            SCF_opts.set('basis', basis)
-            self.append('ae-SCF/' + basis, SCF_opts)
-
+        for basis_set in [self.XZ_list, self.aXZ_list, self.CXZ_list, self.aCXZ_list]:
+            for basis in basis_set:
+                SCF_opts.set('basis', basis)
+                self.append('ae-SCF/' + basis, SCF_opts)
 
         #SDQ-MP4
 
@@ -300,24 +321,18 @@ class Job_List:
 
 #*************************************************************
 # Main function 
-
-#Global joblist
-JOB_LIST = Job_List(None, None)
-
 if __name__ == '__main__':
     
     #Process Docopts input
     args = docopt(__doc__, version="superHEAT 1.0")
-#    print(args)
-#    print(args['--ZMAT'])
 
     #if printing job ids
     if args['--joblist']:
         joblist = Job_List(None, None)
         joblist.print_names() 
 
+    #generating job files
     else:
-
         #Read ZMAT
         zmat = ZMAT(args['--ZMAT'])
         zmat.print()
