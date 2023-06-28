@@ -13,12 +13,14 @@
 #  
 # ADDING JOBS
 #   To add a new job follow these steps
+#	1. In the 
 #
 # ADDING OPTIONS
 #   Sometimes you need to add a new option for this script to 
 #   track. To do so, follow these steps:
 # 
 # 	1. In the Options_List constructor, add a call to self.update to inlclude the new required option 
+#
 #
 #
 #*************************************************************
@@ -41,6 +43,7 @@ Options:
 """
 
 from docopt import docopt
+import copy
 
 #*************************************************************
 # Option class
@@ -67,11 +70,11 @@ class Option_List:
     
     def __init__(self):
         self.dict = {}
+
         #The following are "required" options that must be tracked
-#        self.update('calc'    , Option(abrv='XXX', default=None       ) )
-#        self.update('calc'    , Option(abrv='XXX', default=None       ) )
-#        self.update('basis'   , Option(abrv='YYY', default=None       ) )
-#        self.update('frzcore' , Option(abrv='ZZZ', default=None       ) )
+        self.update('calc'    , Option(abrv='XXX', default=None       ) )
+        self.update('basis'   , Option(abrv='YYY', default=None       ) )
+        self.update('frzcore' , Option(abrv='ZZZ', default=None       ) )
         self.update('ccprog'  , Option(abrv='CCC', default='VCC'       ) )
         self.update('abcd'    , Option(abrv='AAA', default='STANDARD' ) )
         self.update('dboc'    , Option(abrv='DDD', default='OFF'      ) )
@@ -84,9 +87,14 @@ class Option_List:
         for name, option in self.dict.items():
             print(name, option.abrv, option.default, option.value) 
 
-    #update an option
+    #update an option, which ADDS the option if it doesn't currently exist 
     def update(self, name, option):
         self.dict.update({name:option})
+
+    #set an option's value
+    def set(self, name, value):
+        self.dict[name].value = value
+    
 
 #*************************************************************
 # ZMAT class
@@ -136,7 +144,9 @@ class ZMAT:
 # Job class
 #
 # This class contains information about a particular job (calculation)
-# that the script should generate. 
+# that the script should generate. Note that the initialization does 
+# specifically deepcopy only, in order to prevent any unfortunate 
+# accidents overwritting the orginal data
 #
 # Member variables:
 #	num		: unique identifier for the job
@@ -150,17 +160,17 @@ class ZMAT:
 class Job:
     
     def __init__(self, num, name, zmat, run, options):
-        self.num       = num
-        self.name      = name
-        self.zmat      = zmat
-        self.run       = run
-        self.options   = options 
+        self.num       = copy.deepcopy(num)
+        self.name      = copy.deepcopy(name)
+        self.zmat      = copy.deepcopy(zmat) #make sure we can't do anything bad
+        self.run       = copy.deepcopy(run)
+        self.options   = copy.deepcopy(options)
         self.zmat_name = "zmat." + str(num).zfill(3)
         self.run_name  = "run."  + str(num).zfill(3) 
 
     #print the job options
     def print(self):
-        print("Job ", str(num).zfill(3), ":", self.name)
+        print("Job ", str(self.num).zfill(3), ":", self.name)
         self.options.print()
         print()
 
@@ -168,10 +178,51 @@ class Job:
     def generate(self):
         self.zmat.set_options(self.options) 
         self.zmat.to_file(self.zmat_name)
+        #TODO: add runfile support here
 
+#*************************************************************
+# Job_List
+#
+# This class is "just" a dictionary of Job class objects. The 
+# user requests specific instances of jobs from within this list
+#
+# NOTE
+# It is very important that any reordering of the job ids is done
+# EXTREMELY carefully, as many users might write scripts that 
+# process the output of these calculations based upon job ids 
+#
+class Job_List:
+
+    def __init__(self, zmat, run):
+        self.jobs = []
+        self.zmat = copy.deepcopy(zmat)
+        self.run  = copy.deepcopy(run)
+
+        #Here we add the list of jobs. Note is it really important that you only 
+        # APPEND to this list
+        opts = Option_List()
+        opts.set('calc'   , 'SCF')
+        opts.set('basis'  , 'PVDZ')
+        opts.set('frzcore', 'OFF')
+        self.jobs.append(Job(num = len(self.jobs)+1, name = 'SCF/cc-pVDZ', 
+                             zmat = self.zmat, run = self.run, options = opts)) 
+
+    #print all jobs
+    def print(self):
+        for idx in range(len(self.jobs)):
+            self.jobs[idx].print()
+
+    #given a set of job ids, generate the jobs
+    #note that the job ids begin at 1
+    def generate(self, jobs):
+        for idx in jobs:
+            self.jobs[idx-1].generate()
 
 #*************************************************************
 # Main function 
+
+#Global joblist
+#JOB_LIST = Job_List()
 
 if __name__ == '__main__':
     
@@ -184,7 +235,11 @@ if __name__ == '__main__':
     zmat = ZMAT(args['--ZMAT'])
     zmat.print()
 
-    job001 = Job(1, "test", zmat, None, Option_List()) 
-    job001.generate()
+    joblist = Job_List(zmat, None)
+    joblist.generate([1])
+    print("\n joblist is...")
+    joblist.print()
+
+    zmat.print()
 
 
