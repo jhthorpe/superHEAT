@@ -8,9 +8,14 @@
 # .py script to generate the multitudes of ZMATs needed for
 # testing or performing thermochemical calculations
 #
+# TODO: modify Job_List to do different xcfour commands
+#
 # -------------------------------------------
 # USER NOTES 
 #
+#
+# In order to generate a set of jobs, you need to know which jobs to make. Here you have a few options.
+# 	1. You can use a preconstructed recipe
 #
 #
 #  
@@ -29,17 +34,10 @@
 #	4. The Job_List class is initialized
 #	5. user request recipies and jobs are generated 
 #
-# The various options one might want are described Option class. The ZMAT and run files
-# contain abreviated codes that are then substituted out for the correct strings
-#
-# ADDING OPTIONS
-#   Sometimes you need to add a new option for this script to 
-#   track. If it is a ZMAT option, add it to the set_ZMAT_default 
-#   function in the Options class. If it is a runfile option, add it 
-#   to the set_run_default function.  
-# 
-#   
-#
+# -------------------------------------------
+# ADDING A BASIS
+#     1. Go to the Basis class. Below it are a list of globally defined basis functions. Add yours there. 
+#        Its global name should start with b_, to indicate this is a basis
 #
 #
 #*************************************************************
@@ -49,8 +47,9 @@
 """superHEAT
 
 Usage:
-    superHEAT.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh>
-    superHEAT.py --joblist
+    superHEAT.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh> --recipe=<recipe>
+    superHEAT.py --joblist [--recipe=<recipie>]
+    superHEAT.py --recipes
     superHEAT.py (-h | --help)
     superHEAT.py --version
 
@@ -121,21 +120,206 @@ class Option_List:
     #set default options for runfile
     def set_run_default(self):
         #the following are the required options that must be tracked
-        self.update('jobname'    , Option(abrv = 'JJJ', default = None       ) )
-        self.update('jobid'      , Option(abrv = 'XXX', default = None       ) )
-        self.update('xcfour'     , Option(abrv = 'XC4', default = None       ) )
+        self.update('jobname'    , Option(abrv = 'JJJ'  , default = None       ) )
+        self.update('jobid'      , Option(abrv = 'xxxxx', default = None       ) )
+        self.update('xcfour'     , Option(abrv = 'XC4'  , default = None       ) )
         
 #*************************************************************
-# Basis
+# Basis_Set
 #
-# Basis class, which contains information about some basis function
-class Basis:
+# Basis_Set class, which contains information about some basis set. 
+#
+# Member variables:
+# proper_name		- name you would see in the lit. ex: cc-pVDZ, 6-31G, etc.
+# GENBAS_name		- name to find in the GENBAS file
+# short_name		- name to identify in this script
+# zeta			- cannonical order of the basis
+# type			- type of basis set. ex: Dunning, Pople, ANO, etc.
+#
+class Basis_Set:
     
-    def __init__(self, proper_name, GENBAS_name, short_name):
+    # NOTE: 
+    # If you modify the member variables, make sure to modify the "select" function in 
+    # Basis as well!
+    def __init__(self, proper_name, GENBAS_name, short_name, zeta, style):
         self.proper_name = proper_name
         self.GENBAS_name = GENBAS_name
         self.short_name  = short_name
+        self.zeta        = zeta
+        self.style       = style
+
+#*************************************************************
+# Basis
+#
+# A container for Basis_Set.
+#
+class Basis:
+
+    def __init__(self):
+        self.dict =  {}
+
+    def add(self, basis_set):
+        self.dict.update({basis_set.short_name : basis_set})
+
+    def print(self):
+        for key, basis in self.dict.items():
+            basis.print()
+
+    def short_names(self):
+        for key, basis in self.dict.items():
+            print(basis.short_name)
+
+    def get(self, short_name):
+        return self.dict[short_name]
+
+    #this returns a new Basis object, with only the basis sets that match those requested by the user
+    # for example:
+    #   dunning_basis = Basis.select(style='Dunning') 
+    # will contain ONLY dunning basis sets
+    def select(self, proper_name=None, GENBAS_name=None, short_name=None, zeta=None, style=None):
+        new_basis = Basis()
+        for key, basis in self.dict.items():
+            if ( proper_name != None ) and ( basis.proper_name != proper_name ): continue
+            if ( GENBAS_name != None ) and ( basis.GENBAS_name != GENBAS_name ): continue
+            if (  short_name != None ) and (  basis.short_name != short_name  ): continue
+            if (        zeta != None ) and (        basis.zeta != zeta        ): continue
+            if (       style != None ) and (       basis.style != style       ): continue
+            new_basis.add(basis)
+        return new_basis
+ 
+   
+# Global basis variable set
+# To add a new basis to be tracked, append it in the style you see below. 
+#
+# NOTE: 
+# 	1. This is a dictionary update, so adding a collision will overwrite
+# 	2. Changing ANYTHING here will cause jobid numbers to change, and thus should be done very very carefully
+
+BASIS = Basis()
+BASIS.add( Basis_Set(proper_name='cc-pVDZ', GENBAS_name='PVDZ', short_name = 'DZ', zeta = 2, style = 'Dunning') ) 
+BASIS.add( Basis_Set(proper_name='cc-pVTZ', GENBAS_name='PVTZ', short_name = 'TZ', zeta = 3, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pVQZ', GENBAS_name='PVQZ', short_name = 'QZ', zeta = 4, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pV5Z', GENBAS_name='PV5Z', short_name = '5Z', zeta = 5, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pV6Z', GENBAS_name='PV6Z', short_name = '6Z', zeta = 6, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pV7Z', GENBAS_name='PV7Z', short_name = '7Z', zeta = 7, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pV8Z', GENBAS_name='PV8Z', short_name = '8Z', zeta = 8, style = 'Dunning') )
+ 
+BASIS.add( Basis_Set(proper_name='aug-cc-pVDZ', GENBAS_name='AUG-PVDZ', short_name = 'aDZ', zeta = 2, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pVTZ', GENBAS_name='AUG-PVTZ', short_name = 'aTZ', zeta = 3, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pVQZ', GENBAS_name='AUG-PVQZ', short_name = 'aQZ', zeta = 4, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pV5Z', GENBAS_name='AUG-PV5Z', short_name = 'a5Z', zeta = 5, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pV6Z', GENBAS_name='AUG-PV6Z', short_name = 'a6Z', zeta = 6, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pV7Z', GENBAS_name='AUG-PV7Z', short_name = 'a7Z', zeta = 7, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pV8Z', GENBAS_name='AUG-PV8Z', short_name = 'a8Z', zeta = 8, style = 'Dunning') )
+
+BASIS.add( Basis_Set(proper_name='cc-pCVDZ', GENBAS_name='PCVDZ', short_name = 'CDZ', zeta = 2, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCVTZ', GENBAS_name='PCVTZ', short_name = 'CTZ', zeta = 3, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCVQZ', GENBAS_name='PCVQZ', short_name = 'CQZ', zeta = 4, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCV5Z', GENBAS_name='PCV5Z', short_name = 'C5Z', zeta = 5, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCV6Z', GENBAS_name='PCV6Z', short_name = 'C6Z', zeta = 6, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCV7Z', GENBAS_name='PCV7Z', short_name = 'C7Z', zeta = 7, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='cc-pCV8Z', GENBAS_name='PCV8Z', short_name = 'C8Z', zeta = 8, style = 'Dunning') )
+
+BASIS.add( Basis_Set(proper_name='aug-cc-pCVDZ', GENBAS_name='AUG-PCVDZ', short_name = 'aCDZ', zeta = 2, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCVTZ', GENBAS_name='AUG-PCVTZ', short_name = 'aCTZ', zeta = 3, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCVQZ', GENBAS_name='AUG-PCVQZ', short_name = 'aCQZ', zeta = 4, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCV5Z', GENBAS_name='AUG-PCV5Z', short_name = 'aC5Z', zeta = 5, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCV6Z', GENBAS_name='AUG-PCV6Z', short_name = 'aC6Z', zeta = 6, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCV7Z', GENBAS_name='AUG-PCV7Z', short_name = 'aC7Z', zeta = 7, style = 'Dunning') )
+BASIS.add( Basis_Set(proper_name='aug-cc-pCV8Z', GENBAS_name='AUG-PCV8Z', short_name = 'aC8Z', zeta = 8, style = 'Dunning') )
+
+#*************************************************************
+# Calc
+#
+# Calc class, which consists of different information about various 
+# type of calculations. 
+#
+# Member variables:
+# proper_name		- true name of the calculation
+# ZMAT_name		- what needs to go with the CALC= section of ZMAT
+# short_name		- shorthand for this calc
+# rhf_cc		- CC_PROG subroutine to use in RHF case
+# uhf_cc		- CC_PROG subroutine to use in UHF case
+# rohf_cc		- CC_PROG subroutine to use in ROHF case
+# 
+#
+class Calc:
     
+    def __init__(self, proper_name, ZMAT_name, short_name, rhf_cc, uhf_cc, rohf_cc):
+        self.proper_name = proper_name
+        self.ZMAT_name   = ZMAT_name
+        self.short_name  = short_name
+        self.rhf_cc      = rhf_cc
+        self.uhf_cc      = uhf_cc
+        self.rohf_cc     = rohf_cc         
+
+    def print(self):
+        print(proper_name, ZMAT_name, short_name, rhf_cc, uhf_cc, rohf_cc)
+
+
+#*************************************************************
+# Calcs
+#
+# 
+#Calcs. Note that all start with c_ to indicate they are a claculation
+#
+class Calcs:
+
+    def __init__(self):
+        self.dict = {}
+
+    def add(self, calc):
+        self.dict.update({calc.short_name:calc})
+
+    def print(self):
+        for key, calc in self.dict.items():
+            calc.print()
+
+    def short_names(self):
+        for key, calc in self.dict.items():
+            print(calc.short_name)
+
+    def get(self, short_name):
+        return seld.dict[short_name]
+
+#Calcs global variable
+CALCS = Calcs()
+
+CALCS.add( Calc(proper_name = "SCF",          ZMAT_name = "SCF",                    short_name = "scf",
+                     rhf_cc = "NCC",             uhf_cc = "NCC",                       rohf_cc = "VCC") )
+    
+CALCS.add( Calc(proper_name = "MP2",          ZMAT_name = "MP2",                    short_name = "mp2",
+                     rhf_cc = "VCC",             uhf_cc = "VCC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "SDQ-MP4",      ZMAT_name = "SDQ-MP4",                short_name = "sdqmp4",
+                     rhf_cc = "VCC",             uhf_cc = "VCC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "CCSD",         ZMAT_name = "CCSD",                   short_name = "D", 
+                     rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "CCSD(T)",      ZMAT_name = "CCSD(T)",                short_name = "pt", 
+                     rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "CCSD(T)_L",    ZMAT_name = "CCSD(T)_L",              short_name = "ptL", 
+                     rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "CCSDT",        ZMAT_name = "CCSDT",                  short_name = "T", 
+                     rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC") )
+
+CALCS.add( Calc(proper_name = "CCSDT(Q)",     ZMAT_name = "CCSDT(Q)",               short_name = "pq", 
+                     rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC") )
+
+CALCS.add( Calc(proper_name = "CCSDT(Q)_L",   ZMAT_name = "CCSDT(Q)_L",             short_name = "pqL", 
+                     rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC") )
+
+CALCS.add( Calc(proper_name = "CCSDTQ",       ZMAT_name = "CCSDTQ",                 short_name = "Q", 
+                     rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC") )
+
+CALCS.add( Calc(proper_name = "CCSDTQ(P)_L",  ZMAT_name = "CC(n-1)(n)_L, EXCITE=5", short_name = "ppL", 
+                     rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC") )
+
+CALCS.add( Calc(proper_name = "CCSDTQP(H)_L", ZMAT_name = "CC(n-1)(n)_L, EXCITE=6", short_name = "phL", 
+                     rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC") )
 
 #*************************************************************
 # ZMAT class
@@ -166,7 +350,6 @@ class ZMAT:
     def replace(self, old_str, new_str):
         for idx in range(len(self.all_lines)):
             self.all_lines[idx] = self.all_lines[idx].replace(old_str, new_str)
-
 
     #Given an Options_List, replace all matching abrv in the ZMAT with the appropriate
     # values 
@@ -274,19 +457,19 @@ class Job:
         self.zmat_options   = copy.deepcopy(zmat_options)
         self.run            = copy.deepcopy(run)
         self.run_options    = copy.deepcopy(run_options)
-        self.zmat_name      = "zmat." + str(num).zfill(3)
-        self.run_name       = "run."  + str(num).zfill(3) 
+        self.zmat_name      = "zmat." + str(num).zfill(4)
+        self.run_name       = "run."  + str(num).zfill(4) 
 
     #print the job options
     def print(self):
-        print("Job ", str(self.num).zfill(3), ":", self.name)
+        print("Job ", str(self.num).zfill(4), ":", self.name)
         self.zmat_options.print()
         self.run_options.print()
         print()
 
     #generate the run.xxx and zmat.xxx files
     def generate(self):
-        self.run_options.set('jobid', str(self.num).zfill(3))
+        self.run_options.set('jobid', str(self.num).zfill(4))
         self.zmat.set_options(self.zmat_options) 
         self.zmat.to_file(self.zmat_name)
         self.run.set_options(self.run_options) 
@@ -317,41 +500,6 @@ class Job_List:
         self.run_options.set_run_default()
   
         #basis set lists
-        self.XZ_list   = [ Basis(proper_name='cc-pVDZ', GENBAS_name='PVDZ', short_name = 'DZ'),
-                           Basis(proper_name='cc-pVTZ', GENBAS_name='PVTZ', short_name = 'TZ'),
-                           Basis(proper_name='cc-pVQZ', GENBAS_name='PVQZ', short_name = 'QZ'),
-                           Basis(proper_name='cc-pV5Z', GENBAS_name='PV5Z', short_name = '5Z'),
-                           Basis(proper_name='cc-pV6Z', GENBAS_name='PV6Z', short_name = '6Z'),
-                           Basis(proper_name='cc-pV7Z', GENBAS_name='PV7Z', short_name = '7Z'),
-                           Basis(proper_name='cc-pV8Z', GENBAS_name='PV8Z', short_name = '8Z')
-                         ]
-
-        self.aXZ_list  = [ Basis(proper_name='aug-cc-pVDZ', GENBAS_name='AUG-PVDZ', short_name = 'aDZ'),
-                           Basis(proper_name='aug-cc-pVTZ', GENBAS_name='AUG-PVTZ', short_name = 'aTZ'),
-                           Basis(proper_name='aug-cc-pVQZ', GENBAS_name='AUG-PVQZ', short_name = 'aQZ'),
-                           Basis(proper_name='aug-cc-pV5Z', GENBAS_name='AUG-PV5Z', short_name = 'a5Z'),
-                           Basis(proper_name='aug-cc-pV6Z', GENBAS_name='AUG-PV6Z', short_name = 'a6Z'),
-                           Basis(proper_name='aug-cc-pV7Z', GENBAS_name='AUG-PV7Z', short_name = 'a7Z'),
-                           Basis(proper_name='aug-cc-pV8Z', GENBAS_name='AUG-PV8Z', short_name = 'a8Z')
-                         ]
-
-        self.CXZ_list  = [ Basis(proper_name='cc-pCVDZ', GENBAS_name='PCVDZ', short_name = 'CDZ'),
-                           Basis(proper_name='cc-pCVTZ', GENBAS_name='PCVTZ', short_name = 'CTZ'),
-                           Basis(proper_name='cc-pCVQZ', GENBAS_name='PCVQZ', short_name = 'CQZ'),
-                           Basis(proper_name='cc-pCV5Z', GENBAS_name='PCV5Z', short_name = 'C5Z'),
-                           Basis(proper_name='cc-pCV6Z', GENBAS_name='PCV6Z', short_name = 'C6Z'),
-                           Basis(proper_name='cc-pCV7Z', GENBAS_name='PCV7Z', short_name = 'C7Z'),
-                           Basis(proper_name='cc-pCV8Z', GENBAS_name='PCV8Z', short_name = 'C8Z')
-                         ]
-
-        self.aCXZ_list = [ Basis(proper_name='aug-cc-pCVDZ', GENBAS_name='AUG-PCVDZ', short_name = 'aCDZ'),
-                           Basis(proper_name='aug-cc-pCVTZ', GENBAS_name='AUG-PCVTZ', short_name = 'aCTZ'),
-                           Basis(proper_name='aug-cc-pCVQZ', GENBAS_name='AUG-PCVQZ', short_name = 'aCQZ'),
-                           Basis(proper_name='aug-cc-pCV5Z', GENBAS_name='AUG-PCV5Z', short_name = 'aC5Z'),
-                           Basis(proper_name='aug-cc-pCV6Z', GENBAS_name='AUG-PCV6Z', short_name = 'aC6Z'),
-                           Basis(proper_name='aug-cc-pCV7Z', GENBAS_name='AUG-PCV7Z', short_name = 'aC7Z'),
-                           Basis(proper_name='aug-cc-pCV8Z', GENBAS_name='AUG-PCV8Z', short_name = 'aC8Z')
-                         ]
         self.make()
 
 
@@ -364,7 +512,7 @@ class Job_List:
     #print all job names and ids
     def print_names(self):
         for job in self.jobs:
-            print(str(job.num).zfill(3), job.name)  
+            print(str(job.num).zfill(4), job.name)  
 
 
     #given a set of job ids, generate the jobs
@@ -404,19 +552,40 @@ class Job_List:
         run_opts = copy.deepcopy(self.run_options)
 
         #SCF
-        SCF_opts = copy.deepcopy(self.zmat_options) 
-        SCF_opts.set(   'calc', 'SCF')
-        SCF_opts.set('frzcore', 'OFF')
-        for basis_set in [self.XZ_list, self.aXZ_list, self.CXZ_list, self.aCXZ_list]:
-            for basis in basis_set:
-                SCF_opts.set('basis', basis.GENBAS_name)
-                run_opts.set('jobname' , self.molecule + "_ae-SCF_" + basis.short_name) 
-                run_opts.set('xcfour'  , 'xcfour')
-                self.append('ae-SCF/' + basis.proper_name, SCF_opts, run_opts)
+        zmat_opts = copy.deepcopy(self.zmat_options) 
+        zmat_opts.set(   'calc', 'SCF')
+        zmat_opts.set('frzcore', 'OFF')
+        scf_basis = BASIS.select(style='Dunning')
+        for key, basis in scf_basis.dict.items(): 
+            zmat_opts.set('basis', basis.GENBAS_name)
+            run_opts.set('jobname' , self.molecule + "_ae-scf_" + basis.short_name) 
+            run_opts.set('xcfour'  , 'xcfour')
+            self.append('ae-SCF/' + basis.proper_name, zmat_opts, run_opts)
 
+        '''
         #SDQ-MP4
-        
+        zmat_opts = copy.deepcopy(self.zmat_options) 
+        zmat_opts.set(   'abcd', 'AOBASIS')
+        zmat_opts.set(   'calc', 'SDQ-MP4')
+        zmat_opts.set( 'ccprog', 'VCC')
 
+        zmat_opts.set('frzcore', 'OFF')
+        for basis_set in [b_XZ_list, b_aXZ_list, b_CXZ_list, b_aCXZ_list]:
+            for basis in basis_set:
+                zmat_opts.set('basis', basis.GENBAS_name)
+                run_opts.set('jobname' , self.molecule + "_ae-sdqmp4_" + basis.short_name) 
+                run_opts.set('xcfour'  , 'xcfour')
+                self.append('ae-SDQ-MP4/' + basis.proper_name, zmat_opts, run_opts)
+
+        zmat_opts.set('frzcore', 'ON')
+        for basis_set in [b_XZ_list, b_aXZ_list, b_CXZ_list, b_aCXZ_list]:
+            for basis in basis_set:
+                zmat_opts.set('basis', basis.GENBAS_name)
+                run_opts.set('jobname' , self.molecule + "_fc-sdqmp4_" + basis.short_name) 
+                run_opts.set('xcfour'  , 'xcfour')
+                self.append('fc-SDQ-MP4/' + basis.proper_name, zmat_opts, run_opts)
+        '''
+        
         #CCSD
 
         #CCSD(T)
@@ -431,9 +600,63 @@ class Job_List:
 
         #DBOC
 
+#*************************************************************
+# Constraints
+#
+# A class that gathers constraints that define a unique calculation 
+
+class Constraints:
+    
+    def __init__(self):
+        self.type  = ''
+        self.core  = ''
+        self.calc  = ''
+        self.basis = '' 
+
+
+#*************************************************************
+# Recipe
+#
+# A recipe is just a list of jobs that we want to execute
+
+class Recipe:
+
+    #initialize with some list of jobs
+    def __init__(self, joblist):
+         self.joblist = joblist
+
+    #add job to list
+    def add(self, job):
+        self.joblist.append(job)
+
+    #read from file
+    def from_file(self, file):
+        with open(file, "r") as f:
+            lines = f.readlines()             
+        f.close()
+
+        #process input 
+        for line in lines:
+            csv = line.split(",")
+
+            #process constraints 
+            for item in csv:
+                continue
+                
+
+
+#*************************************************************
+# Reicpies
+#
+# This is a list of (potentially) useful recipies
+
 
 #*************************************************************
 # Main function 
+
+BASIS.short_names()
+CALCS.short_names()
+
 if __name__ == '__main__':
     
     #Process Docopts input
@@ -442,24 +665,23 @@ if __name__ == '__main__':
     #if printing job ids
     if args['--joblist']:
         joblist = Job_List(None, None, None)
+
         joblist.print_names() 
 
     #generating job files
     else:
         #Read ZMAT
         zmat = ZMAT(args['--ZMAT'])
-        zmat.print()
 
         #Read run.dummy
         rundummy = Runscript(args['--runfile'])
-        rundummy.print()
 
+        #Generate the basic joblist
         joblist = Job_List(args['--name'], zmat, rundummy)
 
-        #Generate users from constrained 
-        print("\n joblist is...") #testin
-        joblist.print_names() #testing
-        joblist.print()
+        #Generate the recipe
+        
 
+        #generate the jobs with a particular recipe
         joblist.generate() #testing
 
