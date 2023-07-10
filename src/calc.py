@@ -33,7 +33,6 @@
 # rhf_cc                - CC_PROG subroutine to use in RHF case
 # uhf_cc                - CC_PROG subroutine to use in UHF case
 # rohf_cc               - CC_PROG subroutine to use in ROHF case
-# 
 #
 class Calc:
   
@@ -63,19 +62,23 @@ class Calcs:
     def __init__(self):
         self.dict = {}
 
+    #adds a calculation to dict with short_name as key
     def add(self, calc):
         self.dict.update({calc.short_name:calc})
 
+    #prints all calculations
     def print(self):
         for key, calc in self.dict.items():
             calc.print()
 
+    #prints all short names (keys)
     def short_names(self):
         for key, calc in self.dict.items():
             print(calc.short_name)
 
+    #gets a calculation via it's short name)
     def get(self, short_name):
-        return seld.dict[short_name]
+        return self.dict[short_name]
 
     #this returns a new Calc object, with only the calcs that match those requested by the user
     # for example:

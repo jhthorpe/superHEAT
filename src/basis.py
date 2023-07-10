@@ -58,17 +58,21 @@ class Basis:
     def __init__(self):
         self.dict =  {}
 
+    #add a basis with it's short-name as key
     def add(self, basis_set):
         self.dict.update({basis_set.short_name : basis_set})
 
+    #print all basis
     def print(self):
         for key, basis in self.dict.items():
             basis.print()
 
+    #print all short names (keys)
     def short_names(self):
         for key, basis in self.dict.items():
             print(basis.short_name)
 
+    #get a basis via it's short name (key)
     def get(self, short_name):
         return self.dict[short_name]
 
