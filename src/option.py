@@ -71,11 +71,14 @@ class Options:
 # ZMAT_OPTIONS
 # 
 # Global that contains the list of default options
+#
+# Entries where the default is set to None must be explicity assigned by the user
+# Entries where the abrv is set to None will not be replaced in any string
+#
 
-ZMAT_OPTIONS = Options()
-RUN_OPTIONS = Options()
 
 # The list of default ZMAT options tracked
+ZMAT_OPTIONS = Options()
 ZMAT_OPTIONS.update('calc'    , Option(abrv = 'XXX', default = None      , description="Calculation"  ) )
 ZMAT_OPTIONS.update('basis'   , Option(abrv = 'YYY', default = None      , description="Basis"        ) )
 ZMAT_OPTIONS.update('frzcore' , Option(abrv = 'ZZZ', default = 'OFF'     , description="Frozen-Core"  ) )
@@ -86,8 +89,12 @@ ZMAT_OPTIONS.update('rel'     , Option(abrv = 'RRR', default = 'OFF'     , descr
 ZMAT_OPTIONS.update('newnorm' , Option(abrv = 'NNN', default = 'ON'      , description="NEWNORM"      ) )
 ZMAT_OPTIONS.update('multi'   , Option(abrv =  None, default = 1         , description="Multiplicity" ) )
 ZMAT_OPTIONS.update('ref'     , Option(abrv =  None, default = 'UHF'     , description="Reference"    ) )
+ZMAT_OPTIONS.update('nonhf'   , Option(abrv = 'FFF', default = 'OFF'     , description="Non-HF"       ) )
 
 # The list of default runscript options tracked
+# jobid is special, and is automatically generated
+RUN_OPTIONS = Options()
 RUN_OPTIONS.update('jobname'    , Option(abrv = 'JJJ'  , default = None ,     description="Jobname"      ) )
 RUN_OPTIONS.update('jobid'      , Option(abrv = 'xxxxx', default = None ,     description="Job-ID"       ) )
 RUN_OPTIONS.update('xcfour'     , Option(abrv = 'XC4'  , default = 'xcfour' , description="xcfour"       ) )
+

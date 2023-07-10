@@ -118,7 +118,7 @@ class Joblist:
         idx = 1
         for job in self.jobs:
             job.generate()
-            f.write(str(idx).zfill(4) +  "  " +  job.name)
+            f.write(str(idx).zfill(4) +  "  " +  job.name + "\n")
             idx = idx + 1
         f.close() 
 
