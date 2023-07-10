@@ -33,11 +33,13 @@
 Usage:
     simple.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh> 
     simple.py --joblist 
+    simple.py --abrvs
     simple.py (-h | --help)
     simple.py --version
 
 Options:
     --joblist     Print all predetermined jobs.
+    --abrvs       Print the list of default abbreviations
     -h --help     Show this screen.
     --version     Show version.
 
@@ -83,7 +85,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
     zopts.set('basis', 'PVTZ') 
 
     #specify the runoptions
-    ropts.set('jobname', molecule+'_scf_tz')
+    ropts.set('jobname', molecule + '_scf_tz')
 
     #add it to the current joblist!
     joblist.append(name='SCF/cc-pVTZ', zmat_options=zopts, run_options=ropts)
@@ -111,8 +113,18 @@ if __name__ == '__main__':
 
     #if printing joblist
     if args['--joblist']:
-        joblist = make_joblist()
+        joblist = make_joblist(molecule="")
         joblist.print_names() #printing for now, save to file later
+
+    #print options
+    elif args['--abrvs']:
+        joblist = make_joblist(molecule="")
+
+        print("ZMAT variables")
+        ZMAT_OPTIONS.print()
+
+        print("run.dummy variables")
+        RUN_OPTIONS.print()
 
     #generating job files
     else:

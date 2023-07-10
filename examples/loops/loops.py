@@ -5,7 +5,8 @@
 #       -- created
 # 
 # An example of how to use this repository to generate 
-# CFOUR input files for a number of basis sets at once
+# CFOUR input and runscript files for a loops, two-step 
+# composite recipe
 #
 # To make a new recipe, do the following:
 # 1. Modify the Docopt string to reflect your script's name
@@ -32,11 +33,13 @@
 Usage:
     loops.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh> 
     loops.py --joblist 
+    loops.py --abrvs
     loops.py (-h | --help)
     loops.py --version
 
 Options:
     --joblist     Print all predetermined jobs.
+    --abrvs       Print the list of default abbreviations
     -h --help     Show this screen.
     --version     Show version.
 
@@ -69,6 +72,7 @@ from utility import *
 # NOTE: DO NOT modify any pre-defined global variables
 #
 def make_joblist(molecule=None, zmat=None, run=None):
+
     joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
     #-------------------------------
@@ -80,8 +84,9 @@ def make_joblist(molecule=None, zmat=None, run=None):
         ropts = RUN_OPTIONS
         set_calc(CALCS.get('scf'), zopts)
         set_basis(bas, zopts)
-        ropts.set('jobname', molecule + "_scf_" + short_name.lower()) 
+        ropts.set('jobname', molecule + "_scf_" + short_name.lower())
         joblist.append(name='SCF/'+bas.proper_name, zmat_options=zopts, run_options=ropts)
+
 
     return joblist
 
@@ -95,8 +100,18 @@ if __name__ == '__main__':
 
     #if printing joblist
     if args['--joblist']:
-        joblist = make_joblist()
+        joblist = make_joblist(molecule="")
         joblist.print_names() #printing for now, save to file later
+
+    #print options
+    elif args['--abrvs']:
+        joblist = make_joblist(molecule="")
+
+        print("ZMAT variables")
+        ZMAT_OPTIONS.print()
+
+        print("run.dummy variables")
+        RUN_OPTIONS.print()
 
     #generating job files
     else:

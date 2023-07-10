@@ -33,11 +33,13 @@
 Usage:
     template.py --name=<name> --ZMAT=<zmat> --runfile=<run.sh> 
     template.py --joblist 
+    template.py --abrvs
     template.py (-h | --help)
     template.py --version
 
 Options:
     --joblist     Print all predetermined jobs.
+    --abrvs       Print the list of default abbreviations
     -h --help     Show this screen.
     --version     Show version.
 
@@ -56,6 +58,7 @@ from zmat import *
 from runscript import *
 from option import *
 from job import *
+from utility import *
 
 
 #*************************************************************
@@ -69,10 +72,8 @@ from job import *
 # NOTE: DO NOT modify any pre-defined global variables
 #
 def make_joblist(molecule=None, zmat=None, run=None):
-    joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
-    #add your job construction here
-    #see examples for more detail
+    joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
     return joblist
 
@@ -86,8 +87,18 @@ if __name__ == '__main__':
 
     #if printing joblist
     if args['--joblist']:
-        joblist = make_joblist()
+        joblist = make_joblist(molecule="")
         joblist.print_names() #printing for now, save to file later
+
+    #print options
+    elif args['--abrvs']:
+        joblist = make_joblist(molecule="")
+
+        print("ZMAT variables")
+        ZMAT_OPTIONS.print()
+
+        print("run.dummy variables")
+        RUN_OPTIONS.print()
 
     #generating job files
     else:

@@ -4,6 +4,16 @@ Repo to help with generating superHEAT calculations and tests
 Note that this requires docopt has been installed, and is running python3.0 or later.
 
 ## Usage
+
+**Viewing joblist**
+1. Export this module's src directory into your PYTHONPATH enviroment variable
+2. python3 script_name.py --joblist
+
+**Viewing Substitution Variables**
+1. Export this module's src directory into your PYTHONPATH enviroment variable
+2. python3 script_name.py --abrvs
+
+**Generating files**
 1. Export this module's src directory into your PYTHONPATH enviroment variable
 2. Modify one of the example.py files or src/template.py to generate your specific joblist
 3. Modify a ZMAT and a run.dummy file to use the defined abreviations to be substituted
