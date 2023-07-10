@@ -123,11 +123,11 @@ CALCS.add( Calc(proper_name = "CCSD",         ZMAT_name = "CCSD",               
                      rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC",
                       nbody = 2) )
 
-CALCS.add( Calc(proper_name = "CCSD(T)",      ZMAT_name = "CCSD(T)",                short_name = "pt",
+CALCS.add( Calc(proper_name = "CCSD(T)",      ZMAT_name = "CCSD(T)",                short_name = "pT",
                      rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC",
                       nbody = 3) )
 
-CALCS.add( Calc(proper_name = "CCSD(T)_L",    ZMAT_name = "CCSD(T)_L",              short_name = "ptL",
+CALCS.add( Calc(proper_name = "CCSD(T)_L",    ZMAT_name = "CCSD(T)_L",              short_name = "pTL",
                      rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC",
                       nbody = 3) )
 
@@ -135,11 +135,11 @@ CALCS.add( Calc(proper_name = "CCSDT",        ZMAT_name = "CCSDT",              
                      rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC",
                       nbody = 3) )
 
-CALCS.add( Calc(proper_name = "CCSDT(Q)",     ZMAT_name = "CCSDT(Q)",               short_name = "pq",
+CALCS.add( Calc(proper_name = "CCSDT(Q)",     ZMAT_name = "CCSDT(Q)",               short_name = "pQ",
                      rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 4) )
 
-CALCS.add( Calc(proper_name = "CCSDT(Q)_L",   ZMAT_name = "CCSDT(Q)_L",             short_name = "pqL",
+CALCS.add( Calc(proper_name = "CCSDT(Q)_L",   ZMAT_name = "CCSDT(Q)_L",             short_name = "pQL",
                      rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 4) )
 
@@ -147,11 +147,11 @@ CALCS.add( Calc(proper_name = "CCSDTQ",       ZMAT_name = "CCSDTQ",             
                      rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 4) )
 
-CALCS.add( Calc(proper_name = "CCSDTQ(P)_L",  ZMAT_name = "CC(n-1)(n)_L, EXCITE=5", short_name = "ppL",
+CALCS.add( Calc(proper_name = "CCSDTQ(P)_L",  ZMAT_name = "CC(n-1)(n)_L, EXCITE=5", short_name = "pPL",
                      rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 5) )
 
-CALCS.add( Calc(proper_name = "CCSDTQP(H)_L", ZMAT_name = "CC(n-1)(n)_L, EXCITE=6", short_name = "phL",
+CALCS.add( Calc(proper_name = "CCSDTQP(H)_L", ZMAT_name = "CC(n-1)(n)_L, EXCITE=6", short_name = "pHL",
                      rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 6) )
 

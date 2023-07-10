@@ -16,6 +16,9 @@
 # 	to the correct ones for that basis
 #*************************************************************
 
+import copy
+import sys
+
 #*************************************************************
 # set_calc
 #
@@ -26,13 +29,15 @@ def set_calc(calc, zopts):
     
     #set the calculation name
     zopts.set('calc', calc.ZMAT_name)
+
   
     #set CC_PROG
-    if ('RHF' == zopts.get('ref')) :
+    ref = zopts.get('ref').strip().lower()
+    if ('RHF'.lower() == ref): 
         zopts.set('ccprog', calc.rhf_cc)
-    elif ('UHF' == zopts.get('ref')):
+    elif ('UHF'.lower() == ref):
         zopts.set('ccprog', calc.uhf_cc)
-    elif ('ROHF' == zopts.get('ref')):
+    elif ('ROHF'.lower() == ref): 
         zopts.set('ccprog', calc.rohf_cc)
     else:
         print("set_calc did not recognize the reference type")
