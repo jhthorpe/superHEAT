@@ -74,6 +74,9 @@ from utility import *
 def make_joblist(molecule=None, zmat=None, run=None):
     joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
+   if (zmat != None):
+       ZMAT_OPTIONS.set('ref', zmat.get_ref().strip())
+
     #--------------------------------
     # JOB 1: SCF/cc-pVTZ
     # Using mostly default options, and basic interface

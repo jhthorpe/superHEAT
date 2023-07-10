@@ -132,7 +132,7 @@ CALCS.add( Calc(proper_name = "CCSD(T)_L",    ZMAT_name = "CCSD(T)_L",          
                       nbody = 3) )
 
 CALCS.add( Calc(proper_name = "CCSDT",        ZMAT_name = "CCSDT",                  short_name = "T",
-                     rhf_cc = "NCC",             uhf_cc = "ECC",                       rohf_cc = "VCC",
+                     rhf_cc = "NCC",             uhf_cc = "VCC",                       rohf_cc = "VCC",
                       nbody = 3) )
 
 CALCS.add( Calc(proper_name = "CCSDT(Q)",     ZMAT_name = "CCSDT(Q)",               short_name = "pQ",
