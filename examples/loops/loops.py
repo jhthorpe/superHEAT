@@ -75,16 +75,17 @@ def make_joblist(molecule=None, zmat=None, run=None):
 
     joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
-   if (zmat != None):
-       ZMAT_OPTIONS.set('ref', zmat.get_ref().strip())
+
+    if (zmat != None):
+        ZMAT_OPTIONS.set('ref', zmat.get_ref().strip())
 
     #-------------------------------
     # SCF for cc-pVTZ to cc-pV6Z
     dunning = BASIS.select(style='Dunning')
     for short_name in ["TZ", "QZ", "5Z", "6Z"]:
         bas = dunning.get(short_name)
-        zopts = ZMAT_OPTIONS
-        ropts = RUN_OPTIONS
+        zopts = copy.deepcopy(ZMAT_OPTIONS)
+        ropts = copy.deepcopy(RUN_OPTIONS)
         set_calc(CALCS.get('scf'), zopts)
         set_basis(bas, zopts)
         ropts.set('jobname', molecule + "_scf_" + short_name.lower())

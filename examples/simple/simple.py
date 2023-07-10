@@ -74,14 +74,14 @@ from utility import *
 def make_joblist(molecule=None, zmat=None, run=None):
     joblist = Joblist(molecule=molecule, zmat=zmat, run=run)
 
-   if (zmat != None):
-       ZMAT_OPTIONS.set('ref', zmat.get_ref().strip())
+    if (zmat != None):
+        ZMAT_OPTIONS.set('ref', zmat.get_ref().strip())
 
     #--------------------------------
     # JOB 1: SCF/cc-pVTZ
     # Using mostly default options, and basic interface
-    zopts = ZMAT_OPTIONS
-    ropts = RUN_OPTIONS
+    zopts = copy.deepcopy(ZMAT_OPTIONS)
+    ropts = copy.deepcopy(RUN_OPTIONS)
 
     #You can specify non-default options as you want 
     zopts.set('calc', 'SCF') 
@@ -96,8 +96,8 @@ def make_joblist(molecule=None, zmat=None, run=None):
     #--------------------------------
     # JOB 2: [fc] MP2/cc-pVDZ 
     # Using some of the helper functions
-    zopts = ZMAT_OPTIONS
-    ropts = RUN_OPTIONS
+    zopts = copy.deepcopy(ZMAT_OPTIONS)
+    ropts = copy.deepcopy(RUN_OPTIONS)
     set_calc(CALCS.get('mp2'), zopts)
     set_basis(BASIS.get('DZ'), zopts)
     zopts.set('frzcore', 'ON')
