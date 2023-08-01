@@ -69,6 +69,6 @@ class Zmat:
             csv_line = line.split(",")
             for csv in csv_line:
                 if 'REF=' in csv:
-                    ref = line.split("=")[-1]
+                    ref = csv.split("=")[1]
         return ref
 

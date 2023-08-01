@@ -33,7 +33,7 @@ def set_calc(calc, zopts):
   
     #set CC_PROG
     ref = zopts.get('ref').strip().lower()
-    if ('RHF'.lower() == ref): 
+    if ('RHF'.lower() == ref):
         zopts.set('ccprog', calc.rhf_cc)
     elif ('UHF'.lower() == ref):
         zopts.set('ccprog', calc.uhf_cc)
