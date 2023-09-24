@@ -98,7 +98,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
             set_calc(CALCS.get(c), zopts)
             set_basis(BASIS.get(b), zopts)
             zopts.set('frzcore', 'ON')
-            ropts.set('jobname', molecule + "_" + "c" + "_" + b.lower()) 
+            ropts.set('jobname', molecule + "_" + c + "_" + b.lower()) 
             joblist.append(name="fc-" + CALCS.get(c).proper_name + "/" + BASIS.get(b).proper_name,
                            zmat_options = zopts,
                            run_options  = ropts)
@@ -111,7 +111,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
         set_calc(CALCS.get(c), zopts)
         set_basis(BASIS.get('DZ'), zopts)
         zopts.set('frzcore', 'ON')
-        ropts.set('jobname', molecule + "_" + "c" + "_" + "dz") 
+        ropts.set('jobname', molecule + "_" + c + "_" + "dz") 
         joblist.append(name="fc-" + CALCS.get(c).proper_name + "/" + BASIS.get('DZ').proper_name,
                        zmat_options = zopts,
                        run_options  = ropts)
@@ -134,6 +134,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
     ropts = copy.deepcopy(RUN_OPTIONS)
     set_calc(CALCS.get('D'), zopts)
     set_basis(BASIS.get('aCQZ'), zopts)
+    zopts.set('ccprog', 'VCC')
     zopts.set('dboc', 'ON')
     ropts.set('jobname', molecule + "_dboc_D_aCQZ")
     joblist.append(name="DBOC ae-" + CALCS.get('D').proper_name + "/" + BASIS.get('aCTZ').proper_name,

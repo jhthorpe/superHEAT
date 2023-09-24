@@ -105,7 +105,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
  
     #-------------------------------------
     # CCSDT(Q) - CCSDT calcs 
-    for c in ['pP','Q','pQ','T']:
+    for c in ['pP','pQ','T']:
         zopts = copy.deepcopy(ZMAT_OPTIONS)
         ropts = copy.deepcopy(RUN_OPTIONS) 
         set_calc(CALCS.get(c), zopts)
@@ -134,6 +134,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
     ropts = copy.deepcopy(RUN_OPTIONS)
     set_calc(CALCS.get('D'), zopts)
     set_basis(BASIS.get('aCQZ'), zopts)
+    zopts.set('ccprog','VCC')
     zopts.set('dboc', 'ON')
     ropts.set('jobname', molecule + "_dboc_D_aCQZ")
     joblist.append(name="DBOC ae-" + CALCS.get('D').proper_name + "/" + BASIS.get('aCTZ').proper_name,
