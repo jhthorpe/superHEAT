@@ -147,6 +147,14 @@ CALCS.add( Calc(proper_name = "CCSDTQ",       ZMAT_name = "CCSDTQ",             
                      rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 4) )
 
+CALCS.add( Calc(proper_name = "CCSDTQ(P)",    ZMAT_name = "CC(n-1)(n), EXCITE=5",   short_name = "pP",
+                     rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
+                      nbody = 5) )
+
+CALCS.add( Calc(proper_name = "CCSDTQP",      ZMAT_name = "CC(n), EXCITE=5",        short_name = "P",
+                     rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
+                      nbody = 5) )
+
 CALCS.add( Calc(proper_name = "CCSDTQ(P)_L",  ZMAT_name = "CC(n-1)(n)_L, EXCITE=5", short_name = "pPL",
                      rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 5) )
