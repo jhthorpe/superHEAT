@@ -1,3 +1,6 @@
-__pycache__
-run.[0-9]*
-zmat.[0-9]*
+*__pycache__*
+*run.[0-9]*
+*zmat.[0-9]*
+*joblist.txt
+*.swp
+
