@@ -109,7 +109,7 @@ def make_joblist(molecule=None, zmat=None, run=None):
             set_basis(BASIS.get(s), zopts)
 
             ropts = copy.deepcopy(RUN_OPTIONS)
-            ropts.set('jobname', molecule + c.lower() + "_" +  s.lower())
+            ropts.set('jobname', molecule + "_" + c.lower() + "_" +  s.lower())
 
             joblist.append(name=CALCS.get(c).proper_name + "/" + BASIS.get(s).proper_name,
                            zmat_options = zopts,
