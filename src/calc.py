@@ -163,4 +163,8 @@ CALCS.add( Calc(proper_name = "CCSDTQP(H)_L", ZMAT_name = "CC(n-1)(n)_L, EXCITE=
                      rhf_cc = "MRCC",            uhf_cc = "MRCC",                      rohf_cc = "MRCC",
                       nbody = 6) )
 
+CALCS.add( Calc(proper_name = "CCSD(TQ)",     ZMAT_name = "CCSD(TQ)",               short_name = "pTQ",
+                     rhf_cc = "NCC",             uhf_cc = "MRCC",                      rohf_cc = "MRCC",
+                      nbody = 4) )
+
 
