@@ -92,28 +92,28 @@ def make_joblist(molecule=None, zmat=None, run=None):
     # Note: (T)_L calculates (T) as well
     # Note: (Q)_L calculates (Q) as well
     # Note: (P)_L calculates (P) as well 
-    for c in ['D', 'pQL', 'Q', 'pPL', 'pTL', 'T-1', 'T-1b', 'T-2', 'T-3', 'T-4', 'pT-5', 'Q-1a', 'Q-1b', 'Q-3', 'pQ-6', 'pTQ-4', 'pTQ']
-    for s in ['DZ', 'TZ', 'QZ']
-        zopts = copy.deepcopy(ZMAT_OPTIONS)
+    for c in ['D', 'pQL', 'Q', 'pPL', 'pTL', 'T-1', 'T-1b', 'T-2', 'T-3', 'T-4', 'pT-5', 'Q-1a', 'Q-1b', 'Q-3', 'pQ-6', 'pTQ-4', 'pTQ']:
+        for s in ['DZ', 'TZ', 'QZ']:
+            zopts = copy.deepcopy(ZMAT_OPTIONS)
   
-        H_name = s.replace('C', '')
+            H_name = s.replace('C', '')
 
-        zopts.set('1_basis', BASIS.get(H_name).GENBAS_name)
-        zopts.set('2_basis', BASIS.get(s).GENBAS_name)
-        zopts.set('3_basis', BASIS.get(s).GENBAS_name)
+            zopts.set('1_basis', BASIS.get(H_name).GENBAS_name)
+            zopts.set('2_basis', BASIS.get(s).GENBAS_name)
+            zopts.set('3_basis', BASIS.get(s).GENBAS_name)
 
-        #SET FROZEN CORE ON FOR THESE BASIS
-        zopts.set('frzcore', 'ON')
+            #SET FROZEN CORE ON FOR THESE BASIS
+            zopts.set('frzcore', 'ON')
 
-        set_calc(CALCS.get(c), zopts)
-        set_basis(BASIS.get(s), zopts)
+            set_calc(CALCS.get(c), zopts)
+            set_basis(BASIS.get(s), zopts)
 
-        ropts = copy.deepcopy(RUN_OPTIONS)
-        ropts.set('jobname', molecule + c.lower() + "_" +  s.lower())
+            ropts = copy.deepcopy(RUN_OPTIONS)
+            ropts.set('jobname', molecule + c.lower() + "_" +  s.lower())
 
-        joblist.append(name=CALCS.get(c).proper_name + "/" + BASIS.get(s).proper_name,
-                       zmat_options = zopts,
-                       run_options  = ropts)
+            joblist.append(name=CALCS.get(c).proper_name + "/" + BASIS.get(s).proper_name,
+                           zmat_options = zopts,
+                           run_options  = ropts)
 
     
     return joblist
