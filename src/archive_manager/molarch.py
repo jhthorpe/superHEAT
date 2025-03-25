@@ -47,47 +47,66 @@ class Geometry:
 
     #Returns the distance in Bohrs
     def dist(self, i, j):
-        return math.sqrt((self.xyz[i,0] - self.xyz[j,0])**2.0 + (self.xyz[i,1] - self.xyz[j,1])**2.0 + (self.xyz[i,2] - self.xyz[j,2])**2.0) 
+        ij = np.subtract(self.xyz[i], self.xyz[j])
+        return np.linalg.norm(ij) 
+
 
     #Returns the angle in radians (use np.degrees() to convert)
     # Note: 
     def angle(self, i, j, k):
-        ij = np.array([self.xyz[j,0] - self.xyz[i,0], self.xyz[j,1] - self.xyz[i,1], self.xyz[j,2] - self.xyz[i, 2]]) 
-        jk = np.array([self.xyz[k,0] - self.xyz[j,0], self.xyz[k,1] - self.xyz[j,1], self.xyz[k,2] - self.xyz[j, 2]]) 
-        ij = ij / np.linalg.norm(ij)
-        jk = jk / np.linalg.norm(jk)
-        return np.arccos(np.clip(np.dot(ij, jk), -1.0, 1.0))
+        ji = np.subtract(self.xyz[i], self.xyz[j])
+        jk = np.subtract(self.xyz[k], self.xyz[j])
+        return angle_(ji, jk) 
 
     #Returns the dihedral angle in radians 
     def dihedral(self, i, j, k, l):
-        ij = np.array([self.xyz[j,0] - self.xyz[i,0], self.xyz[j,1] - self.xyz[i,1], self.xyz[j,2] - self.xyz[i, 2]]) 
-        jk = np.array([self.xyz[k,0] - self.xyz[j,0], self.xyz[k,1] - self.xyz[j,1], self.xyz[k,2] - self.xyz[j, 2]])
-        kl = np.array([self.xyz[l,0] - self.xyz[k,0], self.xyz[l,1] - self.xyz[k,1], self.xyz[l,2] - self.xyz[k, 2]])
-        xijk = np.array([ij[1]*jk[2] - ij[2]*jk[1], ij[0]*jk[2] - ij[2]*jk[0], ij[0]*jk[1] - ij[1]*jk[0]])
-        xjkl = np.array([jk[1]*kl[2] - jk[2]*kl[1], jk[0]*kl[2] - jk[2]*kl[0], jk[0]*kl[1] - jk[1]*kl[0]])
-#        xijk = np.array([-ij[1]*jk[2] + ij[2]*jk[1], -ij[0]*jk[2] + ij[2]*jk[0], -ij[0]*jk[1] + ij[1]*jk[0]])
-#        xjkl = np.array([-jk[1]*kl[2] + jk[2]*kl[1], -jk[0]*kl[2] + jk[2]*kl[0], -jk[0]*kl[1] + jk[1]*kl[0]])
-        return np.arccos(np.clip(np.dot(xijk, xjkl)/(np.linalg.norm(xijk) * np.linalg.norm(xjkl)), -1., 1.))
-
+        ji = -1.0 * np.subtract(self.xyz[j], self.xyz[i])
+        ji = np.subtract(self.xyz[j], self.xyz[i])
+        jk = np.subtract(self.xyz[k], self.xyz[j])
+        kl = np.subtract(self.xyz[l], self.xyz[k])
+        return dihedral_(ji, jk, kl)
 
 #Molecule Class
 
 
 #Molecule_Archive Class
 
+d80_xyz = np.array([[-0.14063595,    -0.08271057,    -0.00000000], [ 0.78861218,    -1.66274672,    -0.00000000], [ 0.44295800,    1.32378367,     1.02039617], [ 0.44295800,     1.32378367,    -1.02039617]])
 
+d150_xyz = np.array([[-0.05447514, 0.00843423,0.00000000],[ 0.22598679, 1.81988597, 0.00000000],[ 0.21131969,-0.96015546,-1.53336343],[ 0.21131969,-0.96015546, 1.53336343]])
+
+dtest = np.array([[-0.01426719251500,        -0.05324588734734,        -0.00000000000000], [-0.01426719251500,        -0.05324588734734,         1.83303472504763],  [ 1.57318744539527,        -0.05324588734734,        -0.91651736252381], [-1.38904323630072,         0.74048143160779,        -0.91651736252381]])
+
+#angle between two vectors
+def angle_(v, w):
+    return np.arccos(np.clip(np.dot(v, w)/(np.linalg.norm(v) * np.linalg.norm(w)), -1.0, 1.0)) 
+
+#dihedral between three vectors assuming b contains a common point with a and c
+def dihedral_(a, b, c):
+    axb = np.cross(a, b)
+    bxc = np.cross(b, c)
+    return angle_(axb, bxc)
+        
 
 
 #testing
-geom = Geometry('test', ['C','H', 'H', 'H'], np.array([[-0.05447514, 0.00843423,0.00000000],[ 0.22598679, 1.81988597, 0.00000000],[ 0.21131969,-0.96015546,-1.53336343],[ 0.21131969,-0.96015546, 1.53336343]], dtype=np.float64))
+geom = Geometry('test', ['C','H', 'H', 'H'], dtest) 
+
+#geom_d120 = Geometry('test', ['C','H', 'H', 'H'], np.array([[-0.05447514, 0.00843423,0.00000000],[ 0.22598679, 1.81988597, 0.00000000],[ 0.21131969,-0.96015546,-1.53336343],[ 0.21131969,-0.96015546, 1.53336343]], dtype=np.float64))
+
+
 
 print(geom.name)
 print(geom.atoms)
 print(geom.xyz)
 print("distance is :", geom.dist(0, 1))
+print("distance is :", geom.dist(0, 2))
+print("distance is :", geom.dist(0, 3))
 print("distance is :", geom.dist(1, 2))
-print("angle is :", geom.angle(1, 0, 2), np.degrees(geom.angle(1, 0, 2)))
-print("dehedral is :", geom.dihedral(1,0,2,3), np.degrees(geom.dihedral(1, 0, 2, 3)))
-print("dehedral is :", geom.dihedral(1,2,0,3), np.degrees(geom.dihedral(1, 2, 0, 3)))
-print("dehedral is :", geom.dihedral(1,3,0,2), np.degrees(geom.dihedral(1, 3, 0, 2)))
-print("dehedral is :", geom.dihedral(1,3,2,0), np.degrees(geom.dihedral(1, 3, 2, 0)))
+print("distance is :", geom.dist(1, 3))
+print("distance is :", geom.dist(2, 3))
+print("angle is :", np.degrees(geom.angle(1, 0, 2)))
+print("angle is :", np.degrees(geom.angle(1, 0, 3)))
+print("angle is :", np.degrees(geom.angle(2, 0, 3))) 
+print("dehedral is :", np.degrees(geom.dihedral(1, 0, 2, 3)))
+print("dehedral is :", np.degrees(geom.dihedral(1, 0, 3, 2)))
