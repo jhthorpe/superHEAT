@@ -1,0 +1,41 @@
+TODO:
+# General
+    * Install Functionality (python package?)
+
+# Archive
+    * Molecule archive
+    * Calculation archive 
+    * Basis Set archive
+    * Constants archive 
+
+    ## Molecule Archive
+    Core functionality:
+        * Molecular feature space, identifiers, and ID
+        * Molecular geometry name: xyz coordinates in Bohr
+        * Each unique geometry forms a secondary identifier 
+        * Notes on each molecule   
+        * Storage and Retrieval in archive
+        * Add and remove data from calculations for a given geometry
+        * Geometry dependent features (force constants, population analysis, HOMO-LUMO gap, etc)
+    
+    ### Molecular Feature Space
+        * Internal name
+        * charge, multiplicity
+        * number of electrons, number of core electrons, number of valance electrons
+        * atom counts
+        * Bonding list 
+        * Smiles string, ATcT ID
+    
+    ## Calculation Archive
+    Each calculation must have reference to the following:
+        * The molecule/geometry at which it was performed (molecular identifiers)
+        * The quantum chemistry program used
+        * The output file from the program (Does this need to be separate from the repo?) 
+        * The constants used
+        * The basis set(s) used on each atom (orbital, RI, JKFit) 
+        * The output value 
+
+#Model Chemistry Interface
+    * Model Chemistry module
+    * ATcT Interface
+    * Statistics package  
