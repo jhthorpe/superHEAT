@@ -35,6 +35,16 @@ TODO:
         * The basis set(s) used on each atom (orbital, RI, JKFit) 
         * The output value 
 
+    ## Constants Archive
+    Need to record the values used for constants at any given time. Since each program might have it's own 
+    set of constants, we need to name these and declare which we are using at any point. Note that the atomic units are "fixed"
+    and are the unit of choice here. Each constants set needs
+        * Name
+        * Date
+        * Universal constants 
+        * atomic masses and isotope masses
+        * uncertaines?
+
 #Model Chemistry Interface
     * Model Chemistry module
     * ATcT Interface
