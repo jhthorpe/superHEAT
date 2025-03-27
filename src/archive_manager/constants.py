@@ -56,7 +56,7 @@ class Constant:
             s += "Note               : " + self.note + '\n'
         return s
 
-        #create instance from dictionary
+    #create instance from dictionary
     @classmethod
     def from_dict(cls, dictionary):
         return cls(name = dictionary["name"], date = dictionary["date"], note = dictionary["note"], value = dictionary["value"], unc = dictionary["unc"], rel_unc = dictionary["rel_unc"], unit = dictionary["unit"], is_exact = dictionary["is_exact"])
@@ -77,8 +77,9 @@ class Constant:
 #
 class Constants_Set:
 
-    #Initialize the set from metadata (name, nate, note) and a file object that is positioned to be read
-    def __init__(self, set_name, set_date, set_note, file=None): 
+    #Initialize the set from metadata (name, nate, note). NOTE that this is performed
+    # separately from the file load. The file name is just the set name
+    def __init__(self, set_name, set_date, set_note): 
         self.set_name = set_name
         self.set_date = set_date
         self.set_note = set_note
@@ -112,4 +113,13 @@ class Constants_Set:
         for key, constant in self.constants.items():
             s += constant.print_string() + '\n'
         return s
+
+    #returns a dictionary of the metadata
+    def meta_to_dict(self):
+        return {'set_name' : self.set_name, 'set_date' : self.set_date, 'set_note' : self.set_note} 
+
+    #creates metadata from dictionary
+    @classmethod
+    def meta_from_dict(cls, d):
+        return cls(set_name = d['set_name'], set_date = d['set_date'], set_note = d['set_note']) 
 

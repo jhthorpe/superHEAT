@@ -1,21 +1,102 @@
 # constarc.py 
 #
-# Contains the constants_archive class.  
+# Contains the Constants_Archive class, which manages the creation and retrieval of 
+# historical data of universal constants and conversions
 #
 # NOTES:
-# March 25, 2025 @ ANL : JHT created. Discrepancy between dihedral here and in CFOUR? 
+# March 27, 2025 @ ANL : JHT created. 
 # 
 #
 
-import numpy as np
-import math
-
-from constant import *
+from constants import *
+import json
+import os
+import sys
 
 #
 # Constants_Archive class
+#
+# This is a dictionary of Constants_Set classes, which are
+# themselves a dictionary of Constants.
+#
+# The primary roll of the Constants_Archive is to set and retrieve 
+# values from within the archive file structure.
 # 
-# 
+# Initialization requires an os.path object that directs the function to the 
+# top level archive directory 
+#
+# The constants archive is constructed on two levels. The archive and "metadata" regarding
+# the sets constained are listed in archive/constants/constarc.json", which are read in first. 
+#
+# Then, any given set of constants can be loaded from the file listed in this metadata, which will 
+# be contained in the file:
+#   archive/constants/name_of_file.json
+#
+# These json files are newline deliminated json objects
 #
 class Constants_Archive:
+    
+    # Initialize archive based on if the top path is set or not 
+    def __init__(self, top_archive_path):
+        self.path = os.path.join(top_archive_path, "constants")
+        self.archive_file_name = os.path.join(self.path, "constarc.json")
+        self.constants_sets = {}
 
+        #Check if the top path is valid
+        try: 
+            if not os.path.exists(top_archive_path):
+                raise RuntimeError("Top level archive path not valid, are you use you unzipped it?") 
+        except RuntimeError as error:
+            print("ERROR", error)
+            sys.exit(1)
+
+        #Check if the constants path exists or if this needs to be created 
+        if not os.path.exists(self.archive_file_name):
+            print("WARNING : No constants archive detected, generating now...")
+            if not os.path.exists(self.path):
+                os.makedirs(self.path)
+            with open(self.archive_file_name, 'w', encoding='utf-8') as f:
+                os.utime(self.archive_file_name, None)
+
+        #If the archive exists, we load it 
+        else:
+            print("Loading constants archive metadata from file")
+            with open(self.archive_file_name, "r", encoding="utf-8") as f:
+                for line in f:
+                    new_set = Constants_Set.meta_from_dict(json.loads(line))
+                    self.constants_sets[new_set.set_name] = new_set 
+
+    # Aquire a copy of a Constants_Set
+    def load_constants_set(self, name):
+        return self.constants_set[name].json_load(os.join(self.path, self.constants_set[name].file_name))
+
+    # Print a list of Constants_Sets
+    def print_string(self):
+        s = "Sets of constants available on the archive\n:"
+        for key, cset in self.constants_sets.items():
+            s += "Set name : " + cset.set_name + '\n' 
+            s += "Set date : " + cset.set_date + '\n'
+            s += "Notes    : " + cset.set_note + '\n\n'
+        return s
+
+
+    #Add a new constants set to the archive
+    def add_constants_set(self, new_set): 
+
+        #Check name doesn't currently exist in the constants set
+        try:
+            if new_set.set_name in self.constants_sets:
+                raise RuntimeError("Duplicate name in Constants_Archive.add_constants_set : {}", new_set.set_name)
+            if os.path.exists(os.path.join(self.path, new_set.set_name + ".json")):
+                raise RuntimeError("{}.json already exists in the archive, cannot create new Constants_Set file")
+        except RuntimeError as error:
+            print("ERROR ", error)
+            sys.exit(1)
+
+        #All checks have passed, write the .json file first (just in case) and then append to the archive metadata file
+        new_set.json_dump(os.path.join(self.path, new_set.set_name + ".json"))
+
+        #APPEND to constarc.json
+        with open(self.archive_file_name, "a", encoding='utf-8') as f:
+            json.dump(new_set.meta_to_dict(), f, sort_keys=True, ensure_ascii=False)
+            f.write('\n')
