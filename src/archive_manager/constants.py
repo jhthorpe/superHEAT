@@ -8,7 +8,9 @@
 # March 25, 2025 @ ANL : JHT created. 
 # 
 
+from datetime import datetime
 from decimal import Decimal
+import json
 
 # Constant class
 # Tracks the value of some constant
@@ -20,6 +22,8 @@ from decimal import Decimal
 # rel_unc  : relative uncertainty of the constant
 # unit     : units
 # is_exact : bool for if a constant is exact
+#
+# TODO : make pretty printing...
 class Constant:
     
     def __init__(self, name, date, note, value, unc, rel_unc, unit, is_exact):
@@ -70,34 +74,42 @@ class Constant:
 # set_date : date this set was generated (year_month_day)
 # set_note : notes on this set
 # constants : dictionary of constants in the set
-# conversions : dictionary of conversions in the set
 #
 class Constants_Set:
 
     #Initialize the set from metadata (name, nate, note) and a file object that is positioned to be read
     def __init__(self, set_name, set_date, set_note, file=None): 
-        self.set_name = None
-        self.set_date = None
-        self.set_note = None
+        self.set_name = set_name
+        self.set_date = set_date
+        self.set_note = set_note
         self.constants = {}
-        self.conversions = {}
 
-'''
-    #write constants and conversions to a text file 
-    def save_txt(self, file):
-        return 
-    #converts from Hartrees to kJ/mol
-    def Eh_to_kJmol():
+    #Read from a .json file, takes file name as arguement
+    def json_load(self, file_name):
+        with open(file_name, 'r', encoding="utf-8") as f:
+            for line in f:
+                const = Constant.from_dict(json.loads(line))
+                self.constants[const.name] = const
 
-    #converts from Hartrees to kcal/mol
-    def Eh_to_kcalmol():
+    #Write to a .json file, with newline as delimination between json objects
+    def json_dump(self, file_name):
+        with open(file_name, 'w', encoding="utf-8") as f:
+            for key, constant in self.constants.items():
+                json.dump(constant.to_dict(), f, sort_keys=True, ensure_ascii=False)
+                f.write('\n')
 
-    #converts from Hartrees to wavenumbers (reciprocal centimeters)
-    def Eh_to_wn():
+    #update the constants set
+    def update(self, constant):
+        self.constants[constant.name] = constant
 
-    #converts from Hartrees to electron volts 
-    def Eh_to_eV():
-'''
+    #return string for printing constants
+    def print_string(self):
+        s  = "Constants set :" + self.set_name + '\n'
+        s += "Date          :" + self.set_date + '\n'
+        s += "Notes         :" + self.set_note + '\n'
+        s += "Constants in set \n"
 
+        for key, constant in self.constants.items():
+            s += constant.print_string() + '\n'
+        return s
 
-#TESTING
