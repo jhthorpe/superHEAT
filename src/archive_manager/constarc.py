@@ -12,6 +12,7 @@ from constants import *
 import json
 import os
 import sys
+import copy
 
 #
 # Constants_Archive class
@@ -68,7 +69,8 @@ class Constants_Archive:
 
     # Aquire a copy of a Constants_Set
     def load_constants_set(self, name):
-        return self.constants_set[name].json_load(os.join(self.path, self.constants_set[name].file_name))
+        self.constants_sets[name].json_load(os.path.join(self.path, self.constants_sets[name].set_name + ".json"))
+        return copy.deepcopy(self.constants_sets[name])
 
     # Print a list of Constants_Sets
     def print_string(self):
