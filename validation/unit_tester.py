@@ -1,9 +1,26 @@
+##############################################
 # unit_tester.py
 #
 # March 28, 2025 @ ANL : JHT added
 #
 # Unit testing 
+##############################################
 
+##############################################
+#DOCOPT STRING
+#
+"""unit_test
+
+Usage:
+    unit_test.py [-j <ntask>]
+
+Options:
+    -j  Number of concurrent tests to run [default: 1]
+
+"""
+
+##############################################
+from docopt import docopt
 import concurrent.futures
 import sys
 
@@ -37,7 +54,18 @@ class unit_test:
         self.result = self.func()
 
 
-def main():
+##############################################
+# MAIN
+#
+if __name__ == "__main__":
+
+    args = docopt(__doc__, version="Unit Tester 1.0")
+    ntask = args['-j'] 
+    if ntask > 100 :
+        ntask = 1
+    if ntask < 1 :
+        ntask = 1
+
     test_list = []
 
     #Add tests here
@@ -58,5 +86,3 @@ def main():
         print('{name: <30} {note: <50} {result: <10}'.format(name=test.name, note=test.note, result=rstring))
 
 
-if __name__ == "__main__":
-    main()
