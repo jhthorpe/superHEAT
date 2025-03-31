@@ -1,7 +1,27 @@
-*__pycache__*
+
+# Vim
+*.swp
+
+#Data
+*archive
+*.json
 *run.[0-9]*
 *zmat.[0-9]*
 *joblist.txt
-*.swp
-*archive
-*.json
+
+#Packages
+*__pycache__*
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt

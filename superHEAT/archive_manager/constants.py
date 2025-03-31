@@ -27,7 +27,7 @@ import json
 class Constant:
     
     def __init__(self, name, date, note, value, unc, rel_unc, unit, is_exact):
-        self.name     = name
+        self.name     = name.upper()
         self.date     = date
         self.note     = note
         self.value    = value
@@ -80,7 +80,7 @@ class Constants_Set:
     #Initialize the set from metadata (name, nate, note). NOTE that this is performed
     # separately from the file load. The file name is just the set name
     def __init__(self, set_name, set_date, set_note): 
-        self.set_name = set_name
+        self.set_name = set_name.upper()
         self.set_date = set_date
         self.set_note = set_note
         self.constants = {}
@@ -99,8 +99,14 @@ class Constants_Set:
                 json.dump(constant.to_dict(), f, sort_keys=True, ensure_ascii=False)
                 f.write('\n')
 
+    #add a constant to the set
+    def add_constant(self, constant):
+        assert not constant.name in self.constants, "ERROR : {key} already exists in {name} constants set".format(key = constant.name, name = self.set_name)
+        self.constants[constant.name] = constant
+
     #update the constants set
     def update(self, constant):
+        assert constant.name in self.constants, "ERROR : {key} not found in {name} constants set".format(key = constant.name, name = self.set_name)
         self.constants[constant.name] = constant
 
     #return string for printing constants

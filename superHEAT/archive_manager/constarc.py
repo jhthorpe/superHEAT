@@ -8,13 +8,6 @@
 # 
 #
 
-from constants import *
-import json
-import os
-import sys
-import copy
-
-#
 # Constants_Archive class
 #
 # This is a dictionary of Constants_Set classes, which are
@@ -35,6 +28,11 @@ import copy
 #
 # These json files are newline deliminated json objects
 #
+import os
+import json
+import sys
+from superHEAT.archive_manager import constants
+
 class Constants_Archive:
     
     # Initialize archive based on if the top path is set or not 
@@ -74,7 +72,7 @@ class Constants_Archive:
 
     # Print a list of Constants_Sets
     def print_string(self):
-        s = "Sets of constants available on the archive\n:"
+        s = "Sets of constants available on the archive\n"
         for key, cset in self.constants_sets.items():
             s += "Set name : " + cset.set_name + '\n' 
             s += "Set date : " + cset.set_date + '\n'
@@ -85,15 +83,11 @@ class Constants_Archive:
     #Add a new constants set to the archive
     def add_constants_set(self, new_set): 
 
-        #Check name doesn't currently exist in the constants set
-        try:
-            if new_set.set_name in self.constants_sets:
-                raise RuntimeError("Duplicate name in Constants_Archive.add_constants_set : {}", new_set.set_name)
-            if os.path.exists(os.path.join(self.path, new_set.set_name + ".json")):
-                raise RuntimeError("{}.json already exists in the archive, cannot create new Constants_Set file")
-        except RuntimeError as error:
-            print("ERROR ", error)
-            sys.exit(1)
+        assert not new_set.set_name in self.constants_sets, "A set called {name} already exists in the Constants Archive".format(name=new_set.set_name)
+        assert not os.path.exists(os.path.join(self.path, new_set.set_name + ".json")), "{name}.json already exists in the archive".format(namnew_set.set_name)
+
+        #All checks have passed, add to the set
+        self.constants_sets[new_set.set_name] = new_set
 
         #All checks have passed, write the .json file first (just in case) and then append to the archive metadata file
         new_set.json_dump(os.path.join(self.path, new_set.set_name + ".json"))
@@ -102,3 +96,20 @@ class Constants_Archive:
         with open(self.archive_file_name, "a", encoding='utf-8') as f:
             json.dump(new_set.meta_to_dict(), f, sort_keys=True, ensure_ascii=False)
             f.write('\n')
+
+    #Delete a set of constants from the archive
+    def delete_constants_set(self, old_set_name):
+
+        #Check that the old set actually exists 
+        if old_set_name in self.constants_sets:
+            #remove set from dict
+            self.constants_sets.remove(old_set_name)
+
+            #Remove the .json file for this set
+            os.remove(os.path.join(self.path, old_set_name + '.json'))
+ 
+            #update the metadata file without this set
+            with open(self.archive_file_name, "w", encodint='utf-8') as f:
+                for name, cset in self.constants_sets.items():
+                    json.dump(cset.meta_to_dict(), f, sort_keys=True, ensure_ascii=False)
+                    f.write('\n')

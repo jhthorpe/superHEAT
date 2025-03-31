@@ -3,8 +3,11 @@
 #
 # March 28, 2025 @ ANL : JHT added
 #
-# Unit testing 
-##############################################
+# Unit testing program for superHEAT 
+#
+# NOTE: 
+#   Requires docopt
+#
 
 ##############################################
 #DOCOPT STRING
@@ -61,9 +64,7 @@ if __name__ == "__main__":
 
     args = docopt(__doc__, version="Unit Tester 1.0")
     ntask = args['-j'] 
-    if ntask > 100 :
-        ntask = 1
-    if ntask < 1 :
+    if (ntask > 100) or (ntask < 1):
         ntask = 1
 
     test_list = []
