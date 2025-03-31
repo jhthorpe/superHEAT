@@ -14,9 +14,9 @@
 #*************************************************************
 import sys
 import copy
-from zmat import *
-from runscript import *
-from option import *
+from superHEAT.script_generator.zmat import *
+from superHEAT.script_generator.runscript import *
+from superHEAT.script_generator.option import *
 
 #*************************************************************
 # Job class

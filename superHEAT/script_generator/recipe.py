@@ -15,7 +15,7 @@
 #*************************************************************
 
 import sys
-from job import *
+from superHEAT.script_generator.job import *
 
 #*************************************************************
 # Recipe class
@@ -42,7 +42,8 @@ class Recipe:
                 if (njob == job):
                     found = True
                     break 
-            if (not Found) self.jobs.add(njob)
+            if (not found): 
+                self.jobs.add(njob)
 
 
     #print all jobs
