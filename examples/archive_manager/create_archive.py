@@ -48,3 +48,14 @@ print(my_constarc.print_string())
 
 for constants_set in my_constarc.constants_sets.values():
     print(constants_set.print_string())
+
+#Now, create a NEW archive object from the top directory and read in constants to make sure this works
+foo = constarc.Constants_Archive("new_archive")
+
+print("The new, foo archive constructed from what we just did!")
+print(foo.print_string())
+
+#Now, we must load constants if we want them
+au_set_again = foo.load_constants_set('MY_AU_SET')
+print("Au set!")
+print(au_set_again.print_string())

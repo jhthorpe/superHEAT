@@ -63,7 +63,7 @@ class Constants_Archive:
 
         #If the archive exists, we load it 
         else:
-            print("Loading constants archive metadata from file")
+            print("Loading constants archive metadata from {path}".format(path=self.archive_file_name))
             with open(self.archive_file_name, "r", encoding="utf-8") as f:
                 for line in f:
                     new_set = constants.Constants_Set.meta_from_dict(json.loads(line))
