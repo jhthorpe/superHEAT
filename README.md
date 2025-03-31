@@ -6,7 +6,7 @@ This repo is designed to facilitate the generation and investigation of theoreti
 ## Installation
 Note that the archive is (and must always be) zipped on the Git repo. The 'zip_archive.py' and 'unzip_archive.py' scripts are given as an OS independent way of performing these actions, and you will need to zip the archive before you can commit it, and unzip it before you can use it. 
 
-TODO: support for various commands? A module load? 
+To install the package itself, use `python3 -m pip install .` I have not yet finished the development of this package as a general enviroment, but you can see how to use the various features by looking in the examples folder. 
 
 ## Dependencies
 - docopt (*https://github.com/docopt/docopt*)
