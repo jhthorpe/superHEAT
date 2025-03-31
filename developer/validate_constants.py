@@ -35,14 +35,14 @@ CFOUR_OLD.add_constant(constants.Constant(name = "e".upper(),
                                           is_exact = False,
                                           note = "Elementary charge in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "amu".upper(), 
+CFOUR_OLD.add_constant(constants.Constant(name = "u".upper(), 
                                           date = "2017-02-15", 
                                           value = 1.66053873e-27, 
                                           unc = 0.00000013e-27, 
                                           rel_unc = 7.9E-8, 
                                           unit = "kg",
                                           is_exact = False,
-                                          note = "Unified atomic mass unit in SI, from CFOUR_OLD"))
+                                          note = "Unified atomic mass unit in SI, from CFOUR_OLD, defined as 1/12 the mass of the C-12 atom"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "muN", 
                                           date = "2017-02-15", 
@@ -153,7 +153,61 @@ CFOUR_OLD.add_constant(constants.Constant(name = "kB",
                                           note = "Boltzman Constant in SI, from CFOUR_OLD"))
 
                                           
-#TODO ATOMIC MASSES
+#TODO ATOMIC MASSES in unified atomic mass units, from joda/pertable.f
+CFOUR_MASSES = [ 1.007825035E+00,  4.00260324E+00,  7.0160030E+00,
+   9.0121822E+00,  11.0093054E+00, 12.0000000E+00,
+14.003074002E+00, 15.99491463E+00,18.99840322E+00,
+  19.9924356E+00,  22.9897677E+00, 23.9850423E+00,
+  26.9815386E+00,  27.9769271E+00, 30.9737620E+00,
+ 31.97207070E+00,34.968852721E+00, 39.9623837E+00,
+  38.9637074E+00,  39.9625906E+00, 44.9559100E+00,
+  47.9479473E+00,  50.9439617E+00, 51.9405098E+00,
+  54.9380471E+00,  55.9349393E+00, 58.9331976E+00,
+  57.9353462E+00,  62.9295989E+00, 63.9291448E+00,
+   68.925580E+00,  73.9211774E+00, 74.9215942E+00,
+  79.9165196E+00,  78.9183361E+00,  83.911507E+00,
+   84.911794E+00,  87.9056188E+00,  88.905849E+00,
+  89.9047026E+00,  92.9063772E+00, 97.9054073E+00,
+   97.907215E+00, 101.9043485E+00, 102.905500E+00,
+  105.903478E+00,  106.905092E+00, 113.903357E+00,
+  114.903882E+00, 119.9021991E+00, 120.9038212E+00,
+  129.906229E+00,  126.904473E+00, 131.904144E+00,
+  132.905429E+00,  137.905232E+00, 138.906347E+00,
+  139.905433E+00,  140.907647E+00, 141.907719E+00,
+  144.912743E+00,  151.919728E+00, 152.921225E+00,
+  157.924019E+00,  158.925342E+00, 163.929171E+00,
+  164.930319E+00,  165.930290E+00, 168.934212E+00,
+  173.938859E+00,  174.940770E+00,179.9465457E+00,
+  180.947462E+00,  183.950928E+00, 186.955744E+00,
+  191.961467E+00,  192.962917E+00, 194.964766E+00,
+  196.966543E+00,  201.970617E+00, 204.974401E+00,
+  207.976627E+00,  208.980374E+00, 208.982404E+00,
+  209.987126E+00,  222.017571E+00, 223.019736E+00,
+  226.025410E+00,  227.027752E+00, 232.038055E+00,
+  231.035884E+00,  238.050788E+00, 237.048173E+00,
+  244.064204E+00,  243.061381E+00, 247.070354E+00,
+  247.074987E+00,  251.079587E+00, 252.082980E+00,
+  257.095105E+00,  258.098431E+00,  259.10103E+00,
+   262.10963E+00,   265.11670E+00,  268.12545E+00,
+   271.13347E+00,   272.13803E+00,  270.13465E+00,
+   276.15116E+00,   281.16206E+00,  280.16447E+00,
+   285.17411E+00]
+
+ATOM_NAMES = ['hydrogen','helium','lithium','beryllium','boron','carbon','nitrogen','oxygen','fluorine','neon','sodium','magnesium','Aluminium','silicon','phosphorus','sulfur','chlorine','argon','potassium','calcium','scandium','titanium','vanadium','chromium','manganese','iron','cobalt','nickel','copper','zinc','gallium','germanium','arsenic','selenium','bromine','krypton','rubidium','strontium','yttrium','zirconium','niobium','molybdenum','technetium','ruthenium','rhodium','palladium','silver','cadmium','indium','tin','antimony','tellurium','iodine','xenon','cesium','barium','lanthanum','cerium','praseodymium','neodymium','promethium','samarium','europium','gadolinium','terbium','dysprosium','holmium','erbium','thulium','ytterbium','lutetium','hafnium','tantalum','tungsten','rhenium','osmium','iridium','platinum','gold','mercury','thallium','lead','bismuth','polonium','astatine','radon','Francium','Radium','Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium','Curium','Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium','Lawrencium','Rutherfordium','Dubnium','Seaborgium','Bohrium','Hassium','Meitnerium','Darmstadtium','Roentgenium','Copernicium']
+
+ATOM_SYMBOLS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn']
+
+# Register the atoms and names from the list
+for idx in range(len(CFOUR_MASSES) - 1):
+#    print('{name}({sym}) : {mass}'.format(name = ATOM_NAMES[idx], sym = ATOM_SYMBOLS[idx], mass = CFOUR_MASSES[idx]))    
+    CFOUR_OLD.add_constant(constants.Constant(name = "{sym} u".format(sym = ATOM_SYMBOLS[idx]), 
+                                              date = "2017-02-15", 
+                                              value = CFOUR_MASSES[idx], 
+                                              unc = None, 
+                                              rel_unc = None, 
+                                              unit = "u", 
+                                              is_exact = False,
+                                              note = "Mass of {atm} in unified atomic mass units from CFOUR_OLD.".format(atm = ATOM_NAMES[idx])))
 
 
 #Add some conversions
