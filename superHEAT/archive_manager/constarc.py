@@ -28,9 +28,13 @@
 #
 # These json files are newline deliminated json objects
 #
+# NOTE :
+#   All constants and constants sets are converted to uppercase names to support case-insensitive file systems
+#
 import os
 import json
 import sys
+import copy
 from superHEAT.archive_manager import constants
 
 class Constants_Archive:
@@ -62,7 +66,7 @@ class Constants_Archive:
             print("Loading constants archive metadata from file")
             with open(self.archive_file_name, "r", encoding="utf-8") as f:
                 for line in f:
-                    new_set = Constants_Set.meta_from_dict(json.loads(line))
+                    new_set = constants.Constants_Set.meta_from_dict(json.loads(line))
                     self.constants_sets[new_set.set_name] = new_set 
 
     # Aquire a copy of a Constants_Set
@@ -83,8 +87,10 @@ class Constants_Archive:
     #Add a new constants set to the archive
     def add_constants_set(self, new_set): 
 
-        assert not new_set.set_name in self.constants_sets, "A set called {name} already exists in the Constants Archive".format(name=new_set.set_name)
-        assert not os.path.exists(os.path.join(self.path, new_set.set_name + ".json")), "{name}.json already exists in the archive".format(namnew_set.set_name)
+        assert not new_set.set_name in self.constants_sets, \
+                "A set called {name} already exists in the Constants Archive".format(name=new_set.set_name)
+        assert not os.path.exists(os.path.join(self.path, new_set.set_name + ".json")), \
+                "{name}.json already exists in the archive".format(namnew_set.set_name)
 
         #All checks have passed, add to the set
         self.constants_sets[new_set.set_name] = new_set

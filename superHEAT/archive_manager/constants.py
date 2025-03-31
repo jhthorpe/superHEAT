@@ -59,11 +59,36 @@ class Constant:
     #create instance from dictionary
     @classmethod
     def from_dict(cls, dictionary):
-        return cls(name = dictionary["name"], date = dictionary["date"], note = dictionary["note"], value = dictionary["value"], unc = dictionary["unc"], rel_unc = dictionary["rel_unc"], unit = dictionary["unit"], is_exact = dictionary["is_exact"])
+        return cls(name = dictionary["name"], 
+                   date = dictionary["date"], 
+                   note = dictionary["note"], 
+                   value = dictionary["value"], 
+                   unc = dictionary["unc"], 
+                   rel_unc = dictionary["rel_unc"], 
+                   unit = dictionary["unit"], 
+                   is_exact = dictionary["is_exact"])
 
     #returns a python dictionary
     def to_dict(self):
-        return {"name" : self.name, "date" : self.date, "note" : self.note, "value" : self.value, "unc" : self.unc, "rel_unc" : self.rel_unc, "unit" : self.unit, "is_exact" : self.is_exact}
+        return {"name" : self.name, 
+                "date" : self.date, 
+                "note" : self.note, 
+                "value" : self.value, 
+                "unc" : self.unc, 
+                "rel_unc" : self.rel_unc, 
+                "unit" : self.unit, 
+                "is_exact" : self.is_exact}
+
+    #Compares two constants
+    def __eq__(self, other):
+        return (self.name == other.name and 
+                self.date == other.date and 
+                self.note == other.note and 
+                self.value == other.value and 
+                self.unc == other.unc and 
+                self.rel_unc == other.rel_unc and 
+                self.unit == other.unit and 
+                self.is_exact == other.is_exact)
 
 
 # Constants_Set
@@ -101,12 +126,14 @@ class Constants_Set:
 
     #add a constant to the set
     def add_constant(self, constant):
-        assert not constant.name in self.constants, "ERROR : {key} already exists in {name} constants set".format(key = constant.name, name = self.set_name)
+        assert not constant.name in self.constants, \
+                "ERROR : {key} already exists in {name} constants set".format(key = constant.name, name = self.set_name)
         self.constants[constant.name] = constant
 
     #update the constants set
     def update(self, constant):
-        assert constant.name in self.constants, "ERROR : {key} not found in {name} constants set".format(key = constant.name, name = self.set_name)
+        assert constant.name in self.constants, \
+                "ERROR : {key} not found in {name} constants set".format(key = constant.name, name = self.set_name)
         self.constants[constant.name] = constant
 
     #return string for printing constants
@@ -122,10 +149,39 @@ class Constants_Set:
 
     #returns a dictionary of the metadata
     def meta_to_dict(self):
-        return {'set_name' : self.set_name, 'set_date' : self.set_date, 'set_note' : self.set_note} 
+        return {'set_name' : self.set_name, 
+                'set_date' : self.set_date, 
+                'set_note' : self.set_note} 
 
     #creates metadata from dictionary
     @classmethod
     def meta_from_dict(cls, d):
-        return cls(set_name = d['set_name'], set_date = d['set_date'], set_note = d['set_note']) 
+        return cls(set_name = d['set_name'], 
+                   set_date = d['set_date'], 
+                   set_note = d['set_note']) 
+
+    #Compare two sets of constants
+    # NOTE THAT THIS DOES NOT COMPARE THE METADATA! 
+    # For instance, a set called 'FOO' is identical to a set called 'BAR" if
+    # they contain the exact same set of constants
+    def __eq__(self, other):
+
+        #Trivial case
+        if len(self.constants) != len(other.constants):
+            return False
+
+        #An intelligent way to do this would be to sort first, but these sets are so small that it doesn't matter
+        for skey, svalue in self.constants.items():
+            matches = False
+
+            for okey, ovalue in other.constants.items():
+                if ovalue == svalue:
+                    matches = True
+                    break
+
+            if not matches:
+                return False
+
+        return True
+
 
