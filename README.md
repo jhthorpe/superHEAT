@@ -13,6 +13,7 @@ To install the package itself, use `python3 -m pip install .` I have not yet fin
 - python3.0 or later
 - numpy
 - scipy
+- pytest
 
 ## Archive Manager
 A package that is used to archive data useful in developing theoretical model chemistries. See `examples/archive_manager` for some demonstrations of the capabilities. Currently, there are the following archives that are tracked:

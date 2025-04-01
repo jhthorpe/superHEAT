@@ -71,6 +71,7 @@ class Constants_Archive:
 
     # Aquire a copy of a Constants_Set
     def load_constants_set(self, name):
+        name = name.upper()
         self.constants_sets[name].json_load(os.path.join(self.path, self.constants_sets[name].set_name + ".json"))
         return copy.deepcopy(self.constants_sets[name])
 
