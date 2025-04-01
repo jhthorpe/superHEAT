@@ -27,7 +27,7 @@ import json
 class Constant:
     
     def __init__(self, name, date, note, value, unc, rel_unc, unit, is_exact):
-        self.name     = name.upper()
+        self.name     = name
         self.date     = date
         self.note     = note
         self.value    = value
@@ -40,7 +40,7 @@ class Constant:
     def print_string(self):
         if not self.is_exact:
             (sign, dig, exponent) = Decimal(self.rel_unc).as_tuple()
-            numdig = len(dig) + exponent - 1
+            numdig = len(dig) + exponent - 2 
             s  = "Constant           : " + self.name + '\n'
             s += "Date               : " + self.date + '\n'
             s += "Value              : " + f"{self.value:.{-numdig}e}" + " " + self.unit + '\n'

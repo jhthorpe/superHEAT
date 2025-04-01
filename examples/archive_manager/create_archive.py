@@ -17,15 +17,17 @@ from superHEAT.archive_manager import constants
 import shutil
 import os
 
+ARCHIVE_NAME = "new_archive"
+
 #If the example archive exists, delete it
-if os.path.exists("new_archive"):
-    shutil.rmtree("new_archive")
+if os.path.exists(ARCHIVE_NAME):
+    shutil.rmtree(ARCHIVE_NAME)
 
 #The top level directory is NOT automatically generated
-os.mkdir("new_archive")
+os.mkdir(ARCHIVE_NAME)
 
 #Create the constants archive via the top level directory path
-my_constarc = constarc.Constants_Archive("new_archive")
+my_constarc = constarc.Constants_Archive(ARCHIVE_NAME)
 
 #Create a set of constants to keep in the archive
 au_set = constants.Constants_Set(set_name = "my_AU_set", set_date = "yyyy-mm-dd", set_note = "This will contain a set of constants in atomic units")
@@ -50,7 +52,7 @@ for constants_set in my_constarc.constants_sets.values():
     print(constants_set.print_string())
 
 #Now, create a NEW archive object from the top directory and read in constants to make sure this works
-foo = constarc.Constants_Archive("new_archive")
+foo = constarc.Constants_Archive(ARCHIVE_NAME)
 
 print("The new, foo archive constructed from what we just did!")
 print(foo.print_string())
@@ -59,3 +61,6 @@ print(foo.print_string())
 au_set_again = foo.load_constants_set('MY_AU_SET')
 print("Au set!")
 print(au_set_again.print_string())
+
+if os.path.exists(ARCHIVE_NAME):
+    shutil.rmtree(ARCHIVE_NAME)

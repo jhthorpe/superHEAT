@@ -1,6 +1,6 @@
 # make_standard_constants.py
 #
-# This is a script that generates and modifies the standard set of constants contained in this archive
+# This is a script that generates and validates the standard set of constants contained in this archive
 #
 # March 31, 2025 @ ANL : JHT created
 #
@@ -9,76 +9,322 @@
 
 from superHEAT.archive_manager import constarc
 from superHEAT.archive_manager import constants
+
+from pathlib import Path
+from decimal import Decimal
 import os
 
-ARCHIVE_PATH = "/Users/l00332323/superHEAT/archive"
+ARCHIVE_PATH = Path(__file__).resolve().parent.parent / "archive"
 
+################################################################################
+# Helper functions
+
+# Given a value, uncertainty, and the number of digits valid in the uncertainty,
+# returns the relative uncertainty truncated to the correct number of significant 
+# digits
+def rel_std_unc(value, unc, sfig):
+    x = unc / value
+    (sign, dig, exp) = Decimal(x).as_tuple()
+    ndig = len(dig) + exp - 1
+    return round(x, -ndig + sfig)
+
+
+################################################################################
+# CODATA2022 
+#
+# Codata2022 Recommended values, specifically those related to determining conversions
+# between unit systems.
+#
+
+CODATA2022 = constants.Constants_Set(set_name = "CODATA-2022",
+                                    set_date = "2024-080-30",
+                                    set_note = r"Recommended data accumulated from CODATA 2022. Does not include atomic masses. See https://physics.nist.gov/cuu/pdf/wall_2022.pdf for a brief description, and https://pml.nist.gov/cuu/Constants/ for more details. CODATA 2022 citation: @misc{mohr2024codatarecommendedvaluesfundamental,title={CODATA Recommended Values of the Fundamental Physical Constants: 2022}, author={Peter Mohr and David Newell and Barry Taylor and Eite Tiesinga},year={2024},eprint={2409.03787},archivePrefix={arXiv},primaryClass={hep-ph},url={https://arxiv.org/abs/2409.03787}, }")
+
+
+#Defined Quantities
+CODATA2022.add_constant(constants.Constant(name = "hbar (J s)", 
+                                           date = "2024-08-30", 
+                                           value = 1.054571817e-34,
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "J s", 
+                                           note = r"Reduced Planck constant ($hbar$) in SI units from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "c (m s-1)", 
+                                           date = "2024-08-30", 
+                                           value = 299792458,  
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "m s-1", 
+                                           note = r"Speed of light in vacuum ($c$) in SI units from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "e (C)", 
+                                           date = "2024-08-30", 
+                                           value = 1.602176634e-19,
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "C", 
+                                           note = r"Elementary charge ($e$) in SI units from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "NA (mol-1)", 
+                                           date = "2024-08-30", 
+                                           value = 6.02214076e23, 
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "mol-1", 
+                                           note = r"Avogadro constant ($N_{\rm A}$) from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "kB (J K-1)", 
+                                           date = "2024-08-30", 
+                                           value = 1.380649e-23,
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "J K-1", 
+                                           note = r"Boltzmann constant ($k$) in J K-1 from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "kB/hc (m-1 K-1)", 
+                                           date = "2024-08-30", 
+                                           value = 69.50348004, 
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "m-1 K-1", 
+                                           note = r"Boltzmann constant ($k/hc$) in m-1 K-1 from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "R (J mol-1 K-1)", 
+                                           date = "2024-08-30", 
+                                           value = 8.314462618, 
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "J mol-1 K-1", 
+                                           note = r"Molar gas constant ($R$) from CODATA2022. Defined quantity."))
+
+#Nonexact Constants
+CODATA2022.add_constant(constants.Constant(name = "a0 (m)", 
+                                           date = "2024-08-30", 
+                                           value = 5.29177210544e-11,
+                                           unc = 0.00000000082e-11,
+                                           rel_unc = 1.6e-10, 
+                                           is_exact = False, 
+                                           unit = "m", 
+                                           note = r"Bohr Radius / Atomic unit of length ($a_0$) in SI units from CODATA2022."))
+ 
+CODATA2022.add_constant(constants.Constant(name = "ge-", 
+                                           date = "2024-08-30", 
+                                           value = -2.00231930436092,
+                                           unc = 0.00000000000036,
+                                           rel_unc = 1.8E-13, 
+                                           is_exact = False, 
+                                           unit = "", 
+                                           note = r"Electron g factor ($g_{{\rm e}^-}$) in SI units from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "me (kg)", 
+                                           date = "2024-08-30", 
+                                           value = 9.1093837139e-31, 
+                                           unc = 0.0000000028e-31, 
+                                           rel_unc = 3.1e-10, 
+                                           is_exact = False, 
+                                           unit = "kg", 
+                                           note = r"Electron mass ($m_{\rm e}$) in kg in SI units from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "mp (kg)", 
+                                           date = "2024-08-30", 
+                                           value = 1.67262192595E-27,
+                                           unc = 0.00000000052E-27, 
+                                           rel_unc = 3.1e-10, 
+                                           is_exact = False, 
+                                           unit = "kg", 
+                                           note = r"Proton mass ($m_{\rm p}$) in kg in SI units from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "mn (kg)", 
+                                           date = "2024-08-30", 
+                                           value = 1.67492750056e-27, 
+                                           unc = 0.00000000085e-27, 
+                                           rel_unc = 5.1e-10, 
+                                           is_exact = False, 
+                                           unit = "kg", 
+                                           note = r"Neutron mass ($m_{\rm n}$) in kg in SI units from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "mp/me", 
+                                           date = "2024-08-30", 
+                                           value = 1836.152673426, 
+                                           unc = 0.000000032, 
+                                           rel_unc = 1.7e-11, 
+                                           is_exact = False, 
+                                           unit = "", 
+                                           note = r"Proton/Electron mass ratio ($m_{\rm p}/m_{\rm e}$) from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "Eh (J)", 
+                                           date = "2024-08-30", 
+                                           value = 4.3597447222060e-18, 
+                                           unc = 0.0000000000048e-18, 
+                                           rel_unc = 1.1E-12 ,
+                                           is_exact = False, 
+                                           unit = "J", 
+                                           note = r"Hartree Energy ($E_{\rm h}$) in J in SI units from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "Rinf", 
+                                           date = "2024-08-30", 
+                                           value = 10973731.568157, 
+                                           unc = 0.000012, 
+                                           rel_unc = 1.1E-12 ,
+                                           is_exact = False, 
+                                           unit = "m-1", 
+                                           note = r"Rydberg Constant ($R_\infty$) from CODATA2022."))
+
+CODATA2022.add_constant(constants.Constant(name = "mu (kg)", 
+                                           date = "2024-08-30", 
+                                           value = 1.66053906892e-27, 
+                                           unc = 0.00000000052e-27, 
+                                           rel_unc = 3.1e-10, 
+                                           is_exact = False, 
+                                           unit = "kg", 
+                                           note = r"Atomic mass constant ($m_{\rm u}$) from CODATA2022."))
+
+# Unit conversions
+CODATA2022.add_constant(constants.Constant(name     = "Eh to J", 
+                                           date     = "2024-08-30", 
+                                           value    = 4.3597447222060e-18,
+                                           unc      = 0.0000000000048e-18, 
+                                           rel_unc  = rel_std_unc(4.3597447222060e-18, 0.0000000000048e-18, 1), 
+                                           is_exact = False, 
+                                           unit     = "", 
+                                           note     = r"Conversion from Eh ($E_{\rm h}$) to J ($J$) from CODATA2022. 1 Eh = x J, x = {2 Rinf h c}.")) 
+
+CODATA2022.add_constant(constants.Constant(name     = "Eh to cm-1", 
+                                           date     = "2024-08-30", 
+                                           value    = 2.1947463136314e5, 
+                                           unc      = 0.0000000000024e5, 
+                                           rel_unc  = rel_std_unc(2.1947463136314e5, 0.0000000000024e5, 1), 
+                                           is_exact = False, 
+                                           unit     = "", 
+                                           note     = r"Conversion from Eh ($E_{\rm h}$) to wavenumbers ($cm^{-1}$) from CODATA2022. (1 Eh)/hc = x m-1, x = {2 Rinf}.")) 
+
+CODATA2022.add_constant(constants.Constant(name     = "Eh to eV", 
+                                           date     = "2024-08-30", 
+                                           value    = 27.211386245981, 
+                                           unc      =  0.000000000030, 
+                                           rel_unc  = rel_std_unc(27.211386245981, 0.000000000030, 1), 
+                                           is_exact = False, 
+                                           unit     = "", 
+                                           note     = r"Conversion from Eh ($E_{\rm h}$) to eV ($eV$) from CODATA2022. 1 Eh = x eV, x = {2 Rinf h c / e}.")) 
+# Hand made conversions
+CODATA2022.add_constant(constants.Constant(name     = "J to cal", 
+                                           date     = "2024-08-30", 
+                                           value    = 4.184, 
+                                           unc      = None, 
+                                           rel_unc  = None, 
+                                           is_exact = True, 
+                                           unit     = "", 
+                                           note     = r"Conversion from J ($J$) to cal ($cal$). Formal defintion.")) 
+
+CODATA2022.add_constant(constants.Constant(name     = "Eh to kJ mol-1", 
+                                           date     = "2024-08-30", 
+                                           value    = CODATA2022.constants['Eh to J'].value * CODATA2022.constants["NA (mol-1)"].value / 1000., 
+                                           unc      = CODATA2022.constants["Eh to J"].unc * CODATA2022.constants["NA (mol-1)"].value / 1000., 
+                                           rel_unc  = rel_std_unc(CODATA2022.constants["Eh to J"].value, CODATA2022.constants["Eh to J"].unc, 1), 
+                                           is_exact = False, 
+                                           unit     = "", 
+                                           note     = r"Conversion from Eh ($E_{\rm h}$) to kJ/mol ($kJ mol-1$) from CODATA2022. 1 Eh = x kJ mol-1, x = {2 Rinf h c NA / 1e3}.")) 
+
+
+
+'''
+CODATA2022.add_constant(constants.Constant(name = "", 
+                                           date = "2024-08-30", 
+                                           value = ,
+                                           unc = None,
+                                           rel_unc = None, 
+                                           is_exact = True, 
+                                           unit = "", 
+                                           note = r" in SI units from CODATA2022. Defined quantity."))
+
+CODATA2022.add_constant(constants.Constant(name = "", 
+                                           date = "2024-08-30", 
+                                           value = ,
+                                           unc = ,
+                                           rel_unc = , 
+                                           is_exact = False, 
+                                           unit = "", 
+                                           note = r" in SI units from CODATA2022."))
+'''
+
+################################################################################
+# CFOUR_OLD CONSTANTS
+#
+# Constants speficied by CONSTANTS=OLD in CFOUR 
 CFOUR_OLD = constants.Constants_Set(set_name = "CFOUR_OLD", 
                                     set_date = "2025-03-31", 
-                                    set_note = "CFOUR_OLD constants set used when CONSTANTS=OLD is specified. Values may be found at https://cfour.uni-mainz.de/cfour/index.php?n=Main.ListOfUsedPhysicalConstants, and are otherwise taken from either (QUANTITIES, UNITS, AND SYMBOLS IN PHYSICAL CHEMISTRY, I. Mills et al. Blackwell Science, Oxford, 1993, 2nd Ed.) or (https://physics.nist.gov/cuu/Constants/)")
+                                    set_note = r"CFOUR_OLD constants set used when CONSTANTS=OLD is specified. Values may be found at https://cfour.uni-mainz.de/cfour/index.php?n=Main.ListOfUsedPhysicalConstants, and are otherwise taken from either (QUANTITIES, UNITS, AND SYMBOLS IN PHYSICAL CHEMISTRY, I. Mills et al. Blackwell Science, Oxford, 1993, 2nd Ed.) or (https://physics.nist.gov/cuu/Constants/)")
 
-CFOUR_OLD.add_constant(constants.Constant(name = "a0".upper(), 
+CFOUR_OLD.add_constant(constants.Constant(name = "a0 (m)", 
                                           date = "2017-02-15", 
                                           value = 0.5291772083e-10, 
                                           unc = 0.0000000019e-10,
                                           rel_unc = 3.7e-9,
                                           unit = "m",
                                           is_exact = False,
-                                          note = "Atomic unit of length in SI, from CFOUR_OLD"))
+                                          note = r"Atomic unit of length in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "e".upper(), 
+CFOUR_OLD.add_constant(constants.Constant(name = "e (C)", 
                                           date = "2017-02-15", 
                                           value = 1.602176462e-19, 
                                           unc = 0.000000063e-19, 
                                           rel_unc = 3.9e-8, 
                                           unit = "C",
                                           is_exact = False,
-                                          note = "Elementary charge in SI, from CFOUR_OLD"))
+                                          note = r"Elementary charge in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "u".upper(), 
+CFOUR_OLD.add_constant(constants.Constant(name = "u (kg)", 
                                           date = "2017-02-15", 
                                           value = 1.66053873e-27, 
                                           unc = 0.00000013e-27, 
                                           rel_unc = 7.9E-8, 
                                           unit = "kg",
                                           is_exact = False,
-                                          note = "Unified atomic mass unit in SI, from CFOUR_OLD, defined as 1/12 the mass of the C-12 atom"))
+                                          note = r"Unified atomic mass unit in SI, from CFOUR_OLD, defined as 1/12 the mass of the C-12 atom"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "muN", 
+CFOUR_OLD.add_constant(constants.Constant(name = "muN (J T-1)", 
                                           date = "2017-02-15", 
                                           value = 5.05078317e-27, 
                                           unc = 0.00000020e-27, 
                                           rel_unc = 4.0e-8,
                                           unit = "J T-1", 
                                           is_exact = False,
-                                          note = "Nuclear Magneton in SI, from CFOUR_OLD"))
+                                          note = r"Nuclear Magneton in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "me", 
+CFOUR_OLD.add_constant(constants.Constant(name = "me (kg)", 
                                           date = "2017-02-15", 
                                           value = 9.10938188e-31, 
                                           unc = 0.00000072e-31, 
                                           rel_unc = 7.9e-8, 
                                           unit = "kg", 
                                           is_exact = False,
-                                          note = "Electron Mass in SI, from CFOUR_OLD"))
+                                          note = r"Electron Mass in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "mp", 
+CFOUR_OLD.add_constant(constants.Constant(name = "mp (kg)", 
                                           date = "2017-02-15", 
                                           value = 1.67262158e-27, 
                                           unc = 0.00000013e-27, 
                                           rel_unc = 7.9e-8, 
                                           unit = "kg", 
                                           is_exact = False,
-                                          note = "Proton mass in SI, from CFOUR_OLD"))
+                                          note = r"Proton mass in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "Hbar", 
+CFOUR_OLD.add_constant(constants.Constant(name = "Hbar (J s)", 
                                           date = "2017-02-15", 
                                           value = 1.054571596e-34, 
                                           unc = 0.000000082e-32, 
                                           rel_unc = 7.8e-8, 
                                           unit = "J s", 
                                           is_exact = False,
-                                          note = "Planck constant over 2 pi in SI, from CFOUR_OLD"))
+                                          note = r"Planck constant over 2 pi in SI, from CFOUR_OLD"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "mp/me", 
                                           date = "2017-02-15", 
@@ -87,70 +333,70 @@ CFOUR_OLD.add_constant(constants.Constant(name = "mp/me",
                                           rel_unc = 2.1e-9, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Proton-electron mass ratio, from CFOUR_OLD"))
+                                          note = r"Proton-electron mass ratio, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "c", 
+CFOUR_OLD.add_constant(constants.Constant(name = "c (m s-1)", 
                                           date = "2017-02-15", 
                                           value = 299792458, 
                                           unc = 0, 
                                           rel_unc = 0, 
                                           unit = "m s-1", 
                                           is_exact = True,
-                                          note = "Speed of light in vacuum in SI, from CFOUR_OLD"))
+                                          note = r"Speed of light in vacuum in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "NA", 
+CFOUR_OLD.add_constant(constants.Constant(name = "NA (mol-1)", 
                                           date = "2017-02-15", 
                                           value = 6.02214199e23, 
                                           unc = 0.00000047e23, 
                                           rel_unc = 7.9e-8, 
                                           unit = "mol-1", 
                                           is_exact = False,
-                                          note = "Avogadro's constant in SI, from CFOUR_OLD"))
+                                          note = r"Avogadro's constant in SI, from CFOUR_OLD"))
                                           
-CFOUR_OLD.add_constant(constants.Constant(name = "ea0", 
+CFOUR_OLD.add_constant(constants.Constant(name = "ea0 (C m)", 
                                           date = "2017-02-15", 
                                           value = 8.47835267e-30, 
                                           unc = 0.00000033e-30, 
                                           rel_unc = 3.9e-8, 
                                           unit = "C m", 
                                           is_exact = False,
-                                          note = "Atomic unit of electric dipole moment in SI, from CFOUR_OLD"))
+                                          note = r"Atomic unit of electric dipole moment in SI, from CFOUR_OLD"))
                                           
-CFOUR_OLD.add_constant(constants.Constant(name = "au v", 
+CFOUR_OLD.add_constant(constants.Constant(name = "au v (m s-1)", 
                                           date = "2017-02-15", 
                                           value = 2.1876912633e6, 
                                           unc = 0.0000000073e6, 
                                           rel_unc = 3.3e-9, 
                                           unit = "m s-1", 
                                           is_exact = False,
-                                          note = "atomic unit of velocity in SI, from CFOUR_OLD"))
+                                          note = r"atomic unit of velocity in SI, from CFOUR_OLD"))
                                           
-CFOUR_OLD.add_constant(constants.Constant(name = "au t", 
+CFOUR_OLD.add_constant(constants.Constant(name = "au t (s)", 
                                           date = "2017-02-15", 
                                           value = 2.418884326505e-17, 
                                           unc = 0.000000000016e-17, 
                                           rel_unc = 6.6e-12, 
                                           unit = "s", 
                                           is_exact = False,
-                                          note = "atomic unit of time in SI, from CFOUR_OLD"))
+                                          note = r"atomic unit of time in SI, from CFOUR_OLD"))
                                           
-CFOUR_OLD.add_constant(constants.Constant(name = "g", 
+CFOUR_OLD.add_constant(constants.Constant(name = "ge-", 
                                           date = "2017-02-15", 
                                           value = -2.0023193043718e0, 
                                           unc = 0.0000000000075e0, 
                                           rel_unc = 3.8e-12, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "electron g value in SI, from CFOUR_OLD"))
+                                          note = r"electron g value in SI, from CFOUR_OLD"))
 
-CFOUR_OLD.add_constant(constants.Constant(name = "kB", 
+CFOUR_OLD.add_constant(constants.Constant(name = "kB (J K-1)", 
                                           date = "2017-02-15", 
                                           value = 1.3806504e-23, 
                                           unc = 0.0000024e-23, 
                                           rel_unc = 1.7e-6,
                                           unit = "J K-1", 
                                           is_exact = False,
-                                          note = "Boltzman Constant in SI, from CFOUR_OLD"))
+                                          note = r"Boltzman Constant in SI, from CFOUR_OLD"))
 
                                           
 #TODO ATOMIC MASSES in unified atomic mass units, from joda/pertable.f
@@ -207,7 +453,7 @@ for idx in range(len(CFOUR_MASSES) - 1):
                                               rel_unc = None, 
                                               unit = "u", 
                                               is_exact = False,
-                                              note = "Mass of {atm} in unified atomic mass units from CFOUR_OLD.".format(atm = ATOM_NAMES[idx])))
+                                              note = r"Mass of {atm} in unified atomic mass units from CFOUR_OLD.".format(atm = ATOM_NAMES[idx])))
 
 
 #Add some conversions
@@ -219,7 +465,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "Eh to eV",
                                           rel_unc = 4.0e-7, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from Eh to eV in SI, from CFOUR_OLD, equation 1 Eh = x * eV, x = { 2 Rhc / e}"))
+                                          note = r"Conversion from Eh to eV in SI, from CFOUR_OLD, equation 1 Eh = x * eV, x = { 2 Rhc / e}"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "Eh to J", 
                                           date = "2017-02-15", 
@@ -228,7 +474,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "Eh to J",
                                           rel_unc = 7.8e-8, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from Eh to J in SI, from CFOUR_OLD, equation 1 Eh = x * J, x = {2 Rhc}"))
+                                          note = r"Conversion from Eh to J in SI, from CFOUR_OLD, equation 1 Eh = x * J, x = {2 Rhc}"))
                                           
 CFOUR_OLD.add_constant(constants.Constant(name = "Eh to cm-1", 
                                           date = "2017-02-15", 
@@ -237,7 +483,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "Eh to cm-1",
                                           rel_unc = 7.7e-12, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from Eh to cm-1 (wavenumbers) in SI, from CFOUR_OLD, equation (1 Eh)/hc = x * cm-1, x = {2R}"))
+                                          note = r"Conversion from Eh to cm-1 (wavenumbers) in SI, from CFOUR_OLD, equation (1 Eh)/hc = x * cm-1, x = {2R}"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "cm-1 to kcal/mol", 
                                           date = "2017-02-15", 
@@ -246,7 +492,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "cm-1 to kcal/mol",
                                           rel_unc = None, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from cm-1 (wavefunumbers) to kcal/mol in SI, from CFOUR_OLD, equation 1 cm-1 = x * kcal mol-1"))
+                                          note = r"Conversion from cm-1 (wavefunumbers) to kcal/mol in SI, from CFOUR_OLD, equation 1 cm-1 = x * kcal mol-1"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "cm-1 to kJ/mol", 
                                           date = "2017-02-15", 
@@ -255,7 +501,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "cm-1 to kJ/mol",
                                           rel_unc = None, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from cm-1 (wavenumbers) to kJ/mol  in SI, from CFOUR_OLD, equation 1 cm-1 = x * kJ mol-1"))
+                                          note = r"Conversion from cm-1 (wavenumbers) to kJ/mol  in SI, from CFOUR_OLD, equation 1 cm-1 = x * kJ mol-1"))
                                           
 CFOUR_OLD.add_constant(constants.Constant(name = "D to C m", 
                                           date = "2017-02-15", 
@@ -264,7 +510,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "D to C m",
                                           rel_unc = None, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = "Conversion from D (Debye) to C m in SI, from CFOUR_OLD, equation 1 D = x * C m"))
+                                          note = r"Conversion from D (Debye) to C m in SI, from CFOUR_OLD, equation 1 D = x * C m"))
                                           
                                           
 '''
@@ -275,14 +521,14 @@ CFOUR_OLD.add_constant(constants.Constant(name = "",
                                           rel_unc = , 
                                           unit = "", 
                                           is_exact = False,
-                                          note = " in SI, from CFOUR_OLD"))
+                                          note = r" in SI, from CFOUR_OLD"))
                                           
 '''
 
 
 
 # Dictionary of the standard sets of constants that need to be included in the archive
-STANDARD_SETS = {'CFOUR_OLD' : CFOUR_OLD}
+STANDARD_SETS = {CFOUR_OLD.set_name : CFOUR_OLD, CODATA2022.set_name : CODATA2022}
 
 #######################################################################
 # MAIN
