@@ -52,13 +52,7 @@ Options:
 from docopt import docopt
 import copy
 import sys
-from basis import *
-from calc import * 
-from zmat import *
-from runscript import *
-from option import *
-from job import *
-from utility import *
+from superHEAT.script_generator import *
 
 
 #*************************************************************
