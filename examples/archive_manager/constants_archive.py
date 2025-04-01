@@ -9,7 +9,7 @@
 #   1. create an archive at this level
 #   2. create the constants subarchive
 #   3. Fill it with an example
-#   4. Recover this same archive
+#   4. Recover this same archive and read in a set from it
 #
 
 from superHEAT.archive_manager import constarc
@@ -62,5 +62,6 @@ au_set_again = foo.load_constants_set('MY_AU_SET')
 print("Au set!")
 print(au_set_again.print_string())
 
+#cleanup at the end
 if os.path.exists(ARCHIVE_NAME):
     shutil.rmtree(ARCHIVE_NAME)

@@ -145,9 +145,9 @@ class Constants_Set:
 
     #return string for printing constants
     def print_string(self):
-        s  = "Constants set :" + self.set_name + '\n'
-        s += "Date          :" + self.set_date + '\n'
-        s += "Notes         :" + self.set_note + '\n'
+        s  = "Constants set : " + self.set_name + '\n'
+        s += "Date          : " + self.set_date + '\n'
+        s += "Notes         : " + self.set_note + '\n'
         s += "Constants in set \n"
 
         for key, constant in self.constants.items():
