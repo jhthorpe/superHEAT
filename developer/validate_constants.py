@@ -320,7 +320,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "mp (kg)",
 CFOUR_OLD.add_constant(constants.Constant(name = "Hbar (J s)", 
                                           date = "2017-02-15", 
                                           value = 1.054571596e-34, 
-                                          unc = 0.000000082e-32, 
+                                          unc = 0.000000082e-34, 
                                           rel_unc = 7.8e-8, 
                                           unit = "J s", 
                                           is_exact = False,
@@ -369,7 +369,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "au v (m s-1)",
                                           rel_unc = 3.3e-9, 
                                           unit = "m s-1", 
                                           is_exact = False,
-                                          note = r"atomic unit of velocity in SI, from CFOUR_OLD"))
+                                          note = r"Atomic unit of velocity in SI, from CFOUR_OLD"))
                                           
 CFOUR_OLD.add_constant(constants.Constant(name = "au t (s)", 
                                           date = "2017-02-15", 
@@ -378,7 +378,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "au t (s)",
                                           rel_unc = 6.6e-12, 
                                           unit = "s", 
                                           is_exact = False,
-                                          note = r"atomic unit of time in SI, from CFOUR_OLD"))
+                                          note = r"Atomic unit of time in SI, from CFOUR_OLD"))
                                           
 CFOUR_OLD.add_constant(constants.Constant(name = "ge-", 
                                           date = "2017-02-15", 
@@ -387,7 +387,7 @@ CFOUR_OLD.add_constant(constants.Constant(name = "ge-",
                                           rel_unc = 3.8e-12, 
                                           unit = "", 
                                           is_exact = False,
-                                          note = r"electron g value in SI, from CFOUR_OLD"))
+                                          note = r"Electron g value in SI, from CFOUR_OLD"))
 
 CFOUR_OLD.add_constant(constants.Constant(name = "kB (J K-1)", 
                                           date = "2017-02-15", 
@@ -461,8 +461,8 @@ for idx in range(len(CFOUR_MASSES) - 1):
 CFOUR_OLD.add_constant(constants.Constant(name = "Eh to eV", 
                                           date = "2017-02-15", 
                                           value = 27.2113834, 
-                                          unc = 0.000011, 
-                                          rel_unc = 4.0e-7, 
+                                          unc   =  0.0000011, 
+                                          rel_unc = 4.0e-8, 
                                           unit = "", 
                                           is_exact = False,
                                           note = r"Conversion from Eh to eV in SI, from CFOUR_OLD, equation 1 Eh = x * eV, x = { 2 Rhc / e}"))

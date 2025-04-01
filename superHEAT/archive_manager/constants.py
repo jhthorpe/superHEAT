@@ -36,16 +36,23 @@ class Constant:
         self.unit     = unit
         self.is_exact = is_exact
 
+        #All the rest can be buggered up, but the name and value and "exactness" cannot be
+        assert(self.name is not None)
+        assert(self.value is not None)
+        assert(self.value is not None)
+
     #returns a string to print
     def print_string(self):
         if not self.is_exact:
-            (sign, dig, exponent) = Decimal(self.rel_unc).as_tuple()
-            numdig = len(dig) + exponent - 2 
+            (sign, dig, exponent) = Decimal(self.rel_unc).as_tuple() if self.rel_unc is not None else (0, 0, 0)
+            numdig = (len(dig) + exponent - 2) if self.rel_unc is not None else -4
             s  = "Constant           : " + self.name + '\n'
             s += "Date               : " + self.date + '\n'
-            s += "Value              : " + f"{self.value:.{-numdig}e}" + " " + self.unit + '\n'
-            s += "Std. Unc.          : " + format(self.unc, 'e') + " " + self.unit + '\n'
-            s += "Relative Std. Unc. : " + format(self.rel_unc, 'e') + " " + self.unit + '\n'
+            s += "Value              : " + f"{self.value:.{-numdig}e}" + " " + self.unit + '\n' 
+            s += "Std. Unc.          : " 
+            s += (format(self.unc, 'e') + " " + self.unit + '\n') if self.unc is not None else "N/A\n"
+            s += "Relative Std. Unc. : " 
+            s += (format(self.rel_unc, 'e') + " " + self.unit + '\n')  if self.rel_unc is not None else "N/A\n"
             s += "Note               : " + self.note + '\n'
         else:
             s  = "Constant           : " + self.name + '\n'
