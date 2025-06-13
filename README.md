@@ -9,7 +9,6 @@ This repo is designed to facilitate the generation and investigation of theoreti
 - scipy
 - pytest
 
-
 ## Installation
 Note that the archive is (and must always be) zipped on the Git repo. The `zip_archive.py` and `unzip_archive.py` scripts are given as an OS independent way of performing these actions, and you will need to zip the archive before you can commit it, and unzip it before you can use it. 
 

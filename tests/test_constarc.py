@@ -62,10 +62,19 @@ def test_constarc():
     if os.path.exists(arcname):
         shutil.rmtree(arcname)
 
-    #test that the two sets are equal
+    #The actual tests to run, if we got to this point
     assert(newset == au_set)    
-
-    #test that two constants that are NOT equal are, in fact, not equal 
     assert(not(a0_si == a0_au))
     assert(a0_si == a0_si)
-    assert(a0_si == a0_si)
+    assert(not(newset == si_set))
+
+# Test the scientific notation string interpretor
+def test_SI_to_tuple():
+    si_strings =  
+    si_values  = 
+
+    for s, v in zip(si_strings, si_values):
+       (sv, su, sr) = SI_to_tuple(s) 
+       assert(sv == v[0])
+       assert(sv == v[1])
+       assert(sv == v[2])

@@ -48,7 +48,7 @@ class Constant:
             numdig = (len(dig) + exponent - 2) if self.rel_unc is not None else -4
             s  = "Constant           : " + self.name + '\n'
             s += "Date               : " + self.date + '\n'
-            s += "Value              : " + f"{self.value:.{-numdig}e}" + " " + self.unit + '\n' 
+            s += "Value              : " + f"{self.value:.{-numdig}}e" + " " + self.unit + '\n' 
             s += "Std. Unc.          : " 
             s += (format(self.unc, 'e') + " " + self.unit + '\n') if self.unc is not None else "N/A\n"
             s += "Relative Std. Unc. : " 

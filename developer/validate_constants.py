@@ -16,6 +16,12 @@ import os
 
 ARCHIVE_PATH = Path(__file__).resolve().parent.parent / "archive"
 
+#Atoms and their weights as per IUPAC 2023 (accessed April 2, 2025)
+ATOM_NAMES = ['hydrogen','helium','lithium','beryllium','boron','carbon','nitrogen','oxygen','fluorine','neon','sodium','magnesium','Aluminium','silicon','phosphorus','sulfur','chlorine','argon','potassium','calcium','scandium','titanium','vanadium','chromium','manganese','iron','cobalt','nickel','copper','zinc','gallium','germanium','arsenic','selenium','bromine','krypton','rubidium','strontium','yttrium','zirconium','niobium','molybdenum','technetium','ruthenium','rhodium','palladium','silver','cadmium','indium','tin','antimony','tellurium','iodine','xenon','cesium','barium','lanthanum','cerium','praseodymium','neodymium','promethium','samarium','europium','gadolinium','terbium','dysprosium','holmium','erbium','thulium','ytterbium','lutetium','hafnium','tantalum','tungsten','rhenium','osmium','iridium','platinum','gold','mercury','thallium','lead','bismuth','polonium','astatine','radon','Francium','Radium','Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium','Curium','Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium','Lawrencium','Rutherfordium','Dubnium','Seaborgium','Bohrium','Hassium','Meitnerium','Darmstadtium','Roentgenium','Copernicium']
+
+ATOM_SYMBOLS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn']
+
+
 ################################################################################
 # Helper functions
 
@@ -439,10 +445,6 @@ CFOUR_MASSES = [ 1.007825035E+00,  4.00260324E+00,  7.0160030E+00,
    276.15116E+00,   281.16206E+00,  280.16447E+00,
    285.17411E+00]
 
-ATOM_NAMES = ['hydrogen','helium','lithium','beryllium','boron','carbon','nitrogen','oxygen','fluorine','neon','sodium','magnesium','Aluminium','silicon','phosphorus','sulfur','chlorine','argon','potassium','calcium','scandium','titanium','vanadium','chromium','manganese','iron','cobalt','nickel','copper','zinc','gallium','germanium','arsenic','selenium','bromine','krypton','rubidium','strontium','yttrium','zirconium','niobium','molybdenum','technetium','ruthenium','rhodium','palladium','silver','cadmium','indium','tin','antimony','tellurium','iodine','xenon','cesium','barium','lanthanum','cerium','praseodymium','neodymium','promethium','samarium','europium','gadolinium','terbium','dysprosium','holmium','erbium','thulium','ytterbium','lutetium','hafnium','tantalum','tungsten','rhenium','osmium','iridium','platinum','gold','mercury','thallium','lead','bismuth','polonium','astatine','radon','Francium','Radium','Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium','Curium','Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium','Lawrencium','Rutherfordium','Dubnium','Seaborgium','Bohrium','Hassium','Meitnerium','Darmstadtium','Roentgenium','Copernicium']
-
-ATOM_SYMBOLS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn']
-
 # Register the atoms and names from the list
 for idx in range(len(CFOUR_MASSES) - 1):
 #    print('{name}({sym}) : {mass}'.format(name = ATOM_NAMES[idx], sym = ATOM_SYMBOLS[idx], mass = CFOUR_MASSES[idx]))    
@@ -526,9 +528,17 @@ CFOUR_OLD.add_constant(constants.Constant(name = "",
 '''
 
 
+################################################################################
+# IUPAC atomic weights
+
+IUPAC2023_ATOMS = constants.Constants_Set(set_name = "IUPACK-2023-ATOMS",
+                                          set_date = "2023",
+                                          set_note = r"Recomended values and uncertainties of atomic weights given by IUPAC 2023 Commission on isotopic abundances and atomic weights. Accessed on April 2, 2025 from https://iupac.qmul.ac.uk/AtWt/. Note that their atomic weight ranges have not been implemented or recorded. BibTex citation: @article{ProhaskaIrrgeherBenefieldBöhlkeChessonCoplenDingDunnGröningHoldenMeijerMoossenPossoloTakahashiVoglWalczykWangWieserYonedaZhuMeija+2022+573+600,url = {https://doi.org/10.1515/pac-2019-0603},title = {Standard atomic weights of the elements 2021 (IUPAC Technical Report)},title = {},author = {Thomas Prohaska and Johanna Irrgeher and Jacqueline Benefield and John K. B\"{o}hlke and Lesley A. Chesson and Tyler B. Coplen and Tiping Ding and Philip J. H. Dunn and Manfred Gr\"{o}ning and Norman E. Holden and Harro A. J. Meijer and Heiko Moossen and Antonio Possolo and Yoshio Takahashi and Jochen Vogl and Thomas Walczyk and Jun Wang and Michael E. Wieser and Shigekazu Yoneda and Xiang-Kun Zhu and Juris Meija},pages = {573--600},volume = {94},number = {5},journal = {Pure and Applied Chemistry},doi = {doi:10.1515/pac-2019-0603},year = {2022},lastchecked = {2025-04-02}}")
+
+
 
 # Dictionary of the standard sets of constants that need to be included in the archive
-STANDARD_SETS = {CFOUR_OLD.set_name : CFOUR_OLD, CODATA2022.set_name : CODATA2022}
+STANDARD_SETS = {CFOUR_OLD.set_name : CFOUR_OLD, CODATA2022.set_name : CODATA2022, IUPAC2023_ATOMS.set_name : IUPACK2023_ATOMS}
 
 #######################################################################
 # MAIN
@@ -549,7 +559,7 @@ if __name__ == '__main__':
 
         #It does not exist, we need to add
         else:
-            print(" not found in Archive...", end='')
+            print(" not found in Archive (adding)...", end='')
             carc.add_constants_set(value)
 
         #Validate the set

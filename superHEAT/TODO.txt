@@ -1,14 +1,26 @@
 TODO:
 # General
-    * Install Functionality (python package?)
+    * Install Functionality (setup.py generated)
+    * Testing Functionality (tests directory generated)
 
 # Archive
+    * Constants archive 
     * Molecule archive
     * Calculation archive 
     * Basis Set archive
-    * Constants archive 
 
-    ## Molecule Archive
+    ## Constants Archive / constarc (first version done)
+    Records sets of constants that can be curated or user generated. Core functionality:
+        * Creation/access of constant (done)
+        * read/write constant to file (done)
+        * Creation/access of constants sets (done)
+        * read/write constant sets to file (done)
+        * Creation/access of constant archive (done)
+        * read/write constant archive to file (done)
+    TODO: add more constants sets, specifically CFOUR_NEW, and possibly IUPAC atomic masses as well
+
+    ## Molecule Archive / molarc (Next priority)
+    Need to record critical descriptors of molecules and their subspecies (H2O ~X state vs ~A state are distinct). 
     Core functionality:
         * Molecular feature space, identifiers, and ID
         * Molecular geometry name: xyz coordinates in Bohr
@@ -34,16 +46,6 @@ TODO:
         * The constants used
         * The basis set(s) used on each atom (orbital, RI, JKFit) 
         * The output value 
-
-    ## Constants Archive
-    Need to record the values used for constants at any given time. Since each program might have it's own 
-    set of constants, we need to name these and declare which we are using at any point. Note that the atomic units are "fixed"
-    and are the unit of choice here. Each constants set needs
-        * Name
-        * Date
-        * Universal constants 
-        * atomic masses and isotope masses
-        * uncertaines?
 
 #Model Chemistry Interface
     * Model Chemistry module
