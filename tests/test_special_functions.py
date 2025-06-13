@@ -14,6 +14,7 @@ from superHEAT.special_functions.trending_error import Trending_Error
 from superHEAT.special_functions.linear_normal import Linear_Normal
 from superHEAT.special_functions.linear_normal import ax
 from superHEAT.special_functions.linear_normal import s0pbx
+from superHEAT.special_functions.sample_cdf import Sample_CDF
 
 ##
 # These are the same
@@ -38,8 +39,8 @@ def test_linear_normal_is_linear(x, a, s0, b):
     ])
 def test_linear_normal_correctness(x, a, s0, b):
     ln = Linear_Normal(a, s0, b)
-    assert(ln.f(x) == ax(x, a))
-    assert(ln.sigma(x) == s0pbx(x, s0, b)) 
+    assert(ln.f(x) == a*x)
+    assert(ln.sigma(x) == s0 + b * x) 
     assert(ln.normal(x).stats() == norm(loc=0, scale=s0pbx(x, s0, b)).stats())
 
 ##
@@ -60,4 +61,14 @@ def test_linear_range(a, s0, b, lo, hi):
     lo0, hi0 = ln.valid_range()
     assert(lo0 == lo)
     assert(hi0 == hi)
-
+##
+# check generation of a CDF from a sample
+@pytest.mark.parametrize("x, xsort, y", [
+    ([10,9,8,7],
+     [7,8,9,10],
+     [0.25, 0.5, 0.75, 1.])
+    ])
+def test_sample_cdf(x, xsort, y):
+    v, c = Sample_CDF(x)
+    assert((v == xsort).all())
+    assert((y == c).all())

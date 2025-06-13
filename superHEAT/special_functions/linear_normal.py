@@ -29,12 +29,15 @@ from scipy import stats
 import math
 
 from superHEAT.special_functions.trending_error import Trending_Error
+from superHEAT.special_functions.sample_cdf import Sample_CDF
 
+# This is the definion of our error-trend function
 def ax(x, a):
-    return a*x
+    return np.multiply(a, x)
 
+# This is the definition of our uncertainty spread function 
 def s0pbx(x, s0, b):
-    return s0 + b*x
+    return np.add(s0, np.multiply(b, x))
 
 class Linear_Normal(Trending_Error):
 
