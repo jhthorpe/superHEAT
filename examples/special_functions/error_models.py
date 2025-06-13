@@ -16,10 +16,15 @@ print(ll.sigma(1))
 print(ll.normal(0).stats())
 print(ll.normal(1).stats())
 
-ln = Linear_Normal(-1, 1.5, 1)
+ln = Linear_Normal(-1, 1.5, 2)
 print(ln.f(0))
 print(ln.f(1))
 print(ln.sigma(0))
 print(ln.sigma(1))
 print(ln.normal(0).stats())
 print(ln.normal(1).stats())
+
+print(ln.valid_range())
+
+ln = Linear_Normal(-1, 1.5, -2)
+print(ln.valid_range())

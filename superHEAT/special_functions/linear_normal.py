@@ -9,7 +9,7 @@
 # extends perpendicular to the error-trend with a sigma which is modeled as linearly 
 # dependent on the value of the error:
 #
-#   \sigma(x) = s0 * (1 + b*x)
+#   \sigma(x) = s0 + b * x 
 #
 # One can envision this as a distribution of normal distributions who are centered
 # on f(x) and whose widths cover the line perpendicular to f(x) and can vary linearly
@@ -49,12 +49,12 @@ class Linear_Normal(Trending_Error):
         assert(self.s0 > 0), f"s0 in normal model must be greater than zero"
 
     def __str__(self):
-        return f"f(x) = {self.a}x; sig(x) = {self.s0} * (1 + {self.b} *f(x))"
+        return f"f(x) = {self.a}x; sig(x) = {self.s0} + {self.b} * x"
 
     # returns the lower and upper bounds of 
     # the current model
     def valid_range(self):
-        lo = -math.inf if self.b < 0 else -1./(self.b * self.a) 
-        hi =  math.inf if self.b > 0 else -1./(self.b * self.a) 
+        lo = -self.s0/self.b if self.b > 0 else -math.inf
+        hi = -self.s0/self.b if self.b < 0 else math.inf
         return lo, hi
 

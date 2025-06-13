@@ -6,6 +6,7 @@
 #   The list of unit tests are at the bottom
 
 import pytest
+import math
 
 from scipy.stats import norm
 
@@ -46,3 +47,17 @@ def test_linear_normal_correctness(x, a, s0, b):
 def test_linear_nonegsig():
     with pytest.raises(AssertionError): 
         ln = Linear_Normal(0, -1, 0)
+
+##
+# check that we get a valid range with linear normal
+@pytest.mark.parametrize("a, s0, b, lo, hi", [
+    (0, 1, 0, -math.inf, math.inf),
+    (1, 1.5, 2, -0.75, math.inf),
+    (-1, 1.5, -2, -math.inf, 0.75)
+    ])
+def test_linear_range(a, s0, b, lo, hi):
+    ln = Linear_Normal(a, s0, b)
+    lo0, hi0 = ln.valid_range()
+    assert(lo0 == lo)
+    assert(hi0 == hi)
+
