@@ -43,3 +43,5 @@ The basic premise is that there are a list of options (some defaults, to which y
 
 There is essentially no safeguards here, you can create and run as terrible of a ZMAT as you like. However, if you come up with a useful recipe, feel free to add it in the "examples" directory for everyone to use.
 
+## Special Functions
+This package implements some special functions that may be used in the modeling of model errors. The most developed of these is `Linear_Normal`, which is useful in modeling errors which trend linearly with some independent variable, and further contains a linear model of the uncertainty around this linear trend. TODO: FILL OUT  
