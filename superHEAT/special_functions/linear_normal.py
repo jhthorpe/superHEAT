@@ -61,3 +61,13 @@ class Linear_Normal(Trending_Error):
         hi = -self.s0/self.b if self.b < 0 else math.inf
         return lo, hi
 
+    # Returns the distance of a vector of points (x, y) to the f(x) line 
+    def dist(self, x, y):
+        den = np.sqrt(self.a * self.a + 1)
+        print(den)
+        num = np.abs(np.add(np.multiply(self.a, x), np.multiply(-1, y)))
+        print(num)
+        return np.multiply(num, 1./den) 
+
+    # returns the CDF of some point displacement d from the x 
+

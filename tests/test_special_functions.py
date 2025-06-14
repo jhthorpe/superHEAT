@@ -9,6 +9,7 @@ import pytest
 import math
 
 from scipy.stats import norm
+import numpy as np
 
 from superHEAT.special_functions.trending_error import Trending_Error
 from superHEAT.special_functions.linear_normal import Linear_Normal
@@ -72,3 +73,14 @@ def test_sample_cdf(x, xsort, y):
     v, c = Sample_CDF(x)
     assert((v == xsort).all())
     assert((y == c).all())
+
+##
+# check distance of points to the f(x) line
+@pytest.mark.parametrize("a, x, y, d", [
+    (-2, 1, 0.5, 1.118033988749895),
+    (2, 10, 0.5, 8.72066511224918),
+    (2, np.array([1, 2]), np.array([2, 1]), np.array([0., 1.3416407864998738]))
+    ])
+def test_linear_normal_distance(a, x, y, d):
+    ln = Linear_Normal(a, 1, 1)
+    assert((ln.dist(x, y) == d).all())
