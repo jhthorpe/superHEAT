@@ -191,5 +191,4 @@ class Constants_Set:
 
         return True
 
-UNIT_TESTS = []
 

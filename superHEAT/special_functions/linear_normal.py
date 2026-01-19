@@ -69,5 +69,5 @@ class Linear_Normal(Trending_Error):
         print(num)
         return np.multiply(num, 1./den) 
 
-    # returns the CDF of some point displacement d from the x 
+    # Returns the value of the PDF at some distance d from point x 
 
