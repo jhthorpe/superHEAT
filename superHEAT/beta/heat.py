@@ -35,7 +35,7 @@ def load_heat():
     #numeric_cols = data.columns.drop('Calculation')
     
     # Grab the columns we're going to need 
-    recipe_ingredients = ["SCF/aCQZ", "CCSD/aCTZ", "CCSD/aCQZ", "[fc] CCSD/aTZ", "[fc] CCSD/aQZ", "[fc] (T) / aTZ", "[fc] (T) / aQZ", "PETER Anharmonic"]
+    recipe_ingredients = ["SCF/aCTZ", "SCF/aCQZ", "SCF/aC5Z", "SCF/aC6Z", "CCSD/aCTZ", "CCSD/aCQZ", "[fc] CCSD/aTZ", "[fc] CCSD/aQZ", "[fc] (T) / aTZ", "[fc] (T) / aQZ", "PETER Anharmonic"]
     
     heat = data[recipe_ingredients].apply(pd.to_numeric, errors="coerce")
     heat['Species'] = data['Species'] 
@@ -77,6 +77,9 @@ def reaction_data(heat, reaction_list, column_list):
     be identical. In the future, we can instead use an internal indexing 
     scheme. 
 
+    TODO: Look into doing this with transpose dataframe instead, for better vectorization
+          on large datasets. This is fine for now, though
+
     Input:
     heat          : original heat dataframe 
     reaction_list : list of Reaction class objects 
@@ -86,7 +89,7 @@ def reaction_data(heat, reaction_list, column_list):
     df = heat.set_index('Species')
     rxns = []
 
-    for rxn in reaction_list:
+    for rxn_name, rxn in reaction_list.items():
         row = {'Reaction': rxn.name}
 
         for col in column_list:
@@ -95,6 +98,7 @@ def reaction_data(heat, reaction_list, column_list):
                     coef * df.loc[spec, col]
                     for spec, coef in rxn.stoich.items()
                 )
+                row[col] = val
             else:
                 row[col] = None
         rxns.append(row)
@@ -111,6 +115,13 @@ if __name__ == "__main__":
     heat = load_heat()
 
     print("Loaded HEAT set\n", heat)
+
+    print("TAE reactions:")
+    for name, rxn in heat_tae.items():
+        print(f"{name} : {rxn}")
+
+    #CCH is problematic at the moment
+    heat_tae.pop('TAE CCH')
 
     scf_conv_cols = ['SCF/aCTZ', 'SCF/aCQZ', 'SCF/aC5Z', 'SCF/aC6Z']
     scf_conv = reaction_data(heat, heat_tae, scf_conv_cols)

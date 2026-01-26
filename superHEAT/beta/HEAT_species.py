@@ -431,6 +431,7 @@ heat_species = {
 ##########################################################################################
 # 
 # HEAT TAE reactions
+#
 tae_refs = {'H' :'H', 'C':'C', 'N':'N', 'O':'O', 'F':'F'}
 
 tae_species = {key:None for key in heat_species}
@@ -438,21 +439,22 @@ tae_species = {key:None for key in heat_species}
 for atom, ref in tae_refs.items():
     tae_species.pop(ref)
 
-heat_tae = []
+heat_tae = {}
 for spec in tae_species:
     species = heat_species[spec]
 
-    rxn = Reaction(name = "TAE spec")
+    rxn = Reaction(name = f"TAE {species.name}")
     rxn.stoich[spec] = -1
 
     for atom, num in species.elements.items():
         rxn.stoich[atom] = num
 
-    heat_tae.append(rxn)
+    heat_tae[rxn.name] = rxn 
 
 ##########################################################################################
 #
 # HEAT sequential bond dissociation energies
+#
 heat_bde = {
         'H2 -> 2 H'         : Reaction(stoich = {'H2'   : -1,  'H'   : 2           }),
         'CH -> C + H'       : Reaction(stoich = {'CH'   : -1,  'C'   : 1,  'H' : 1 }),
