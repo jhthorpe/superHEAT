@@ -1,0 +1,96 @@
+1. Health Check:
+   ✅ API is healthy
+
+Generating Species Recovery Tasks
+Waiting on ATcT recovery data
+ATcT Species Info
+H : 216.034 kJ/mol
+C : 711.384 kJ/mol
+N : 470.612 kJ/mol
+O : 246.844 kJ/mol
+F : 77.258 kJ/mol
+N2 : 0 kJ/mol
+H2 : 0 kJ/mol
+F2 : 0 kJ/mol
+O2 : 0 kJ/mol
+CO : -113.799 kJ/mol
+HCCH : 228.88 kJ/mol
+CCH : 563.75 kJ/mol
+CH2 : 391.069 kJ/mol
+CH : 592.969 kJ/mol
+CH3 : 149.879 kJ/mol
+CO2 : -393.111 kJ/mol
+HOOH : -129.421 kJ/mol
+H2O : -238.904 kJ/mol
+HCO : 41.387 kJ/mol
+HF : -272.674 kJ/mol
+HO2 : 15.07 kJ/mol
+NO : 90.647 kJ/mol
+OH : 37.276 kJ/mol
+HNO : 109.96 kJ/mol
+CN : 436.74 kJ/mol
+HCN : 129.688 kJ/mol
+CF : 243.17 kJ/mol
+NH2 : 188.93 kJ/mol
+NH3 : -38.562 kJ/mol
+NH : 358.77 kJ/mol
+OF : 110.28 kJ/mol
+CH4 : -66.543 kJ/mol
+Generating TAE tasks
+Processing TAE tasks
+TAE of N2   :    78680.182 +- 4.958306
+TAE of H2   :    36118.064 +- 0.000611
+TAE of F2   :    12916.529 +- 2.625225
+TAE of O2   :    41269.094 +- 0.345233
+TAE of CO   :    89614.459 +- 3.329251
+TAE of HCCH :   135919.308 +- 8.103975
+TAE of CCH  :    89867.330 +- 10.431127
+TAE of CH2  :    62894.307 +- 7.281311
+TAE of CH   :    27957.753 +- 5.930529
+TAE of CH3  :   101115.249 +- 4.268928
+TAE of CO2  :   133597.666 +- 3.167273
+TAE of HOOH :    88205.909 +- 4.741774
+TAE of H2O  :    76723.426 +- 1.826093
+TAE of HCO  :    94700.955 +- 7.921599
+TAE of HF   :    47311.063 +- 0.658458
+TAE of HO2  :    58068.373 +- 11.301719
+TAE of NO   :    52397.141 +- 4.981251
+TAE of OH   :    35577.549 +- 1.827704
+TAE of HNO  :    68841.732 +- 8.739488
+TAE of CN   :    62298.537 +- 10.695587
+TAE of HCN  :   106025.112 +- 7.133193
+TAE of CF   :    45597.899 +- 8.406502
+TAE of NH2  :    59664.841 +- 9.104378
+TAE of NH3  :    96740.719 +- 3.379428
+TAE of NH   :    27408.293 +- 13.206550
+TAE of OF   :    17874.123 +- 11.100603
+TAE of CH4  :   137265.748 +- 3.838956
+Generating ANL Tasks
+Processing ANL tasks
+ANL Rxn of H    :   -18059.032 +- 0.000305
+ANL Rxn of C    :   -65029.619 +- 3.838956
+ANL Rxn of N    :   -42563.623 +- 3.379428
+ANL Rxn of O    :   -40605.362 +- 1.826093
+ANL Rxn of F    :   -29252.031 +- 0.658458
+ANL Rxn of N2   :    -6447.063 +- 4.841452
+ANL Rxn of F2   :   -45587.533 +- 2.931907
+ANL Rxn of O2   :   -39941.630 +- 3.641568
+ANL Rxn of CO   :   -16020.522 +- 4.898085
+ANL Rxn of HCCH :   -30257.995 +- 10.361234
+ANL Rxn of CCH  :   -58250.941 +- 12.469006
+ANL Rxn of CH2  :   -38253.376 +- 7.739885
+ANL Rxn of CH   :   -55130.898 +- 6.951508
+ANL Rxn of CH3  :   -18091.466 +- 2.156712
+ANL Rxn of CO2  :   -12642.677 +- 6.199716
+ANL Rxn of HOOH :   -29122.879 +- 3.258338
+ANL Rxn of HCO  :   -28993.058 +- 8.551270
+ANL Rxn of HO2  :   -41201.383 +- 11.619639
+ANL Rxn of NO   :   -30771.844 +- 6.226901
+ANL Rxn of OH   :   -23086.845 +- 0.093657
+ANL Rxn of HNO  :   -32386.285 +- 9.500630
+ANL Rxn of CN   :   -45294.705 +- 11.372048
+ANL Rxn of HCN  :   -19627.162 +- 7.820114
+ANL Rxn of CF   :   -48683.752 +- 9.278714
+ANL Rxn of NH2  :   -19016.846 +- 8.867550
+ANL Rxn of NH   :   -33214.362 +- 13.389722
+ANL Rxn of OF   :   -51983.269 +- 11.197921
