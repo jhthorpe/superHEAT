@@ -192,36 +192,38 @@ if __name__ == "__main__":
 
     #CCH is problematic at the moment, remove it from tests
     heat_tae.pop('CCH')
+    heat_anl.pop('CCH')
 
-    #unapproximated superHEAT recipe
+    # unapproximated superHEAT recipe
     # eventually name generation will be automated within this framework
     recipe_ingredients = ["SCF/aC6Z", "(T)/aC5Z", "(T)/aC6Z", "PETER Anharmonic"]
     heat = load_heat(recipe_ingredients)
+
     print("Loaded HEAT set\n", heat)
 
     # Extrapolated data
     heat = extrapolate_2p(heat, avg_schwenke, {
         '(T)/aC{5,6}Z' : {'X_name' : '(T)/aC5Z', 'X_zeta' : 5, 'Y_name' : '(T)/aC6Z', 'Y_zeta' : 6}
     })
-    print("Extrapolated heat : \n", heat)
+
+    #Form total energies
+    heat['Total'] = heat['SCF/aC6Z'] + heat['(T)/aC{5,6}Z'] + heat['PETER Anharmonic']
 
     # Now, form a test 
-    example_list = ['SCF/aC6Z', '(T)/aC{5,6}Z', 'PETER Anharmonic']
-    example_data = reaction_data(heat, heat_tae, example_list, conversion = au2kJ)
-    example_data["Total"] = example_data['SCF/aC6Z'] + example_data['(T)/aC{5,6}Z'] + example_data['PETER Anharmonic']
-
+    recipe_list = ['SCF/aC6Z', '(T)/aC{5,6}Z', 'PETER Anharmonic', 'Total']
+    tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2kJ)
 
     # Last step, add ATcT values for reactions
-    example_data = add_atct(example_data, heat_tae)
+    tae_data = add_atct(tae_data, heat_tae)
 
     # Now we can do statistical analysis
-    example_data["Err"] = example_data["ATcT Values"] - example_data["Total"]
+    tae_data["Err"] = tae_data["ATcT Values"] - tae_data["Total"]
 
-    print("Example data\n", example_data)
+    print("Example data\n", tae_data)
+    print(f"TAE Mean error : {tae_data["Err"].mean()}")
+    print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
+    print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
 
-    print(f"Mean error : {example_data["Err"].mean()}")
-    print(f"Std.Dev. error : {example_data["Err"].std(ddof=1)}")
-    print(f"CI : {l2d(example_data["Err"])}")
 
 
     
