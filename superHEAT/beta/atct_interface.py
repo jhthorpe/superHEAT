@@ -205,11 +205,14 @@ async def fill_reactions(reactions):
         rxns[name].unc = rxn_atct[name][0].uncertainty
 
     #option print at end, probably remove
-    for name, rxn in rxns.items():
-        print(f"{name:18} : {rxn.value * kJ2cm:>12.3f} +- {rxn.unc * kJ2cm:>.6f}")
+    #for name, rxn in rxns.items():
+    #    print(f"{name:18} : {rxn.value * kJ2cm:>12.3f} +- {rxn.unc * kJ2cm:>.6f}")
 
     return rxns
 
+########################################################################################
+# 
+# MAIN
 if __name__== "__main__":
     asyncio.run(main())
 

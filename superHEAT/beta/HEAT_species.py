@@ -462,23 +462,23 @@ for atom, ref in anl_ref.items():
 
 heat_anl = {}
 for spec in anl_species:
-	species = heat_species[spec]
+    species = heat_species[spec]
 
-	rxn = Reaction(name = spec, stoich = {spec : -1})
-	numh = species.elements.count('H')
+    rxn = Reaction(name = species.name, stoich = {spec : -1})
+    numh = species.elements.count('H')
 
-	for atom, num in species.elements.items():
-	    ref = heat_species[anl_ref[atom]]
-	    rxn.stoich[anl_ref[atom]] = num * ref.elements.count(atom)
-	    numh += num * ref.elements.count('H')
+    for atom, num in species.elements.items():
+        ref = heat_species[anl_ref[atom]]
+        rxn.stoich[anl_ref[atom]] = num * ref.elements.count(atom)
+        numh += num * ref.elements.count('H')
 
-	if (abs(numh) > 1e-14):
+    if (abs(numh) > 1e-14):
 	    rxn.stoich['H2'] = rxn.stoich['H2'] - numh * 0.5
 
-	rxn.value = None
-	rxn.unc = None
+    rxn.value = None
+    rxn.unc = None
 
-	heat_anl[rxn.name] = rxn
+    heat_anl[rxn.name] = rxn
 
 
 

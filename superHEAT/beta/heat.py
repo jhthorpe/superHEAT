@@ -131,7 +131,7 @@ def reaction_data(heat, reaction_list, column_list, conversion = None):
     cc = 1. if conversion == None else conversion
 
     for rxn_name, rxn in reaction_list.items():
-        row = {'Reaction': rxn.name}
+        row = {'Reaction': rxn_name}
 
         for col in column_list:
             if col in df.columns:
@@ -163,9 +163,6 @@ def add_atct(reaction_df, reactions):
     values = {key:reactions[key].value for key in reactions}
     uncs = {key:reactions[key].unc for key in reactions}
 
-    print("Values are \n", values)
-    print("unc are \n", uncs)
-
     df['ATcT Values'] = pd.Series(values)
     df['ATcT Unc'] = pd.Series(uncs)
 
@@ -193,6 +190,8 @@ if __name__ == "__main__":
     #CCH is problematic at the moment, remove it from tests
     heat_tae.pop('CCH')
     heat_anl.pop('CCH')
+    for s in ['HCCH -> CCH + H', 'CCH -> CH + C']:
+        heat_bde.pop(s)
 
     # unapproximated superHEAT recipe
     # eventually name generation will be automated within this framework
@@ -211,19 +210,34 @@ if __name__ == "__main__":
 
     # Now, form a test 
     recipe_list = ['SCF/aC6Z', '(T)/aC{5,6}Z', 'PETER Anharmonic', 'Total']
+
     tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2kJ)
+    anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2kJ)
+    bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2kJ)
 
     # Last step, add ATcT values for reactions
     tae_data = add_atct(tae_data, heat_tae)
+    anl_data = add_atct(anl_data, heat_anl)
+    bde_data = add_atct(bde_data, heat_bde)
 
     # Now we can do statistical analysis
     tae_data["Err"] = tae_data["ATcT Values"] - tae_data["Total"]
+    anl_data["Err"] = anl_data["ATcT Values"] - anl_data["Total"]
+    bde_data["Err"] = bde_data["ATcT Values"] - bde_data["Total"]
 
-    print("Example data\n", tae_data)
+    print("TAE data\n", tae_data)
     print(f"TAE Mean error : {tae_data["Err"].mean()}")
     print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
     print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
-
-
+    print("")
+    print("ANL data\n", anl_data)
+    print(f"ANL Mean error : {anl_data["Err"].mean()}")
+    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
+    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
+    print("")
+    print("BDE data\n", bde_data)
+    print(f"BDE Mean error : {bde_data["Err"].mean()}")
+    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
+    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
 
     
