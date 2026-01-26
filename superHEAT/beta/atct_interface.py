@@ -1,4 +1,4 @@
-# HEAT.py
+# atct_interface.py
 # 
 #   JHT, September 18, 2025 @ ANL. Created
 #
@@ -36,9 +36,6 @@ from reaction import Reaction
 # Converts kJ/mol to wavenumbers (inverse centimeters)
 kJ2cm = 83.59347229110210
 
-for bde, rxn in heat_bde.items():
-    print(rxn)
-
 async def main():
 
     # 1. Health check
@@ -49,9 +46,6 @@ async def main():
         print("   ❌ API is not responding")
         return
     print()
-
-    # Atom list, used everywhere
-    atoms = ['H', 'C', 'N', 'O', 'F']
 
     ###################################################################################
     #
@@ -180,6 +174,41 @@ async def main():
     for name,rxn in heat_bde.items():
         print(f"{name:18} : {rxn.value * kJ2cm:>12.3f} +- {rxn.unc * kJ2cm:>.6f}")
 
+########################################################################################
+#
+# fill provided reactions from a Reactions Dictionary
+#
+async def fill_reactions(reactions):
+
+    rxns = reactions
+    
+    # 1. Health check
+    print("1. Health Check:")
+    if await healthcheck():
+        print("   ✅ API is healthy")
+    else:
+        print("   ❌ API is not responding")
+        return
+    print()
+
+    rxn_tasks = {}
+    for name, rxn in reactions.items():
+        rxn_tasks[name] = rxn.atct_0K_query(heat_species)        
+
+    print("Processing ATcT Reaction Tasks")
+    rxn_atct = {}
+    for name, task in rxn_tasks.items():
+        rxn_atct[name] = await asyncio.gather(task['covariance_298K'], task['conventional_0K'], return_exceptions=True)
+
+    for name, task in rxn_tasks.items():
+        rxns[name].value = rxn_atct[name][1].delta_h
+        rxns[name].unc = rxn_atct[name][0].uncertainty
+
+    #option print at end, probably remove
+    for name, rxn in rxns.items():
+        print(f"{name:18} : {rxn.value * kJ2cm:>12.3f} +- {rxn.unc * kJ2cm:>.6f}")
+
+    return rxns
 
 if __name__== "__main__":
     asyncio.run(main())

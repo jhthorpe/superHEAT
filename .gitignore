@@ -3,6 +3,7 @@
 *.swp
 
 #Data
+*.csv
 *archive
 *.json
 *run.[0-9]*

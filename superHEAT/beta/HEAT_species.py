@@ -443,7 +443,7 @@ heat_tae = {}
 for spec in tae_species:
     species = heat_species[spec]
 
-    rxn = Reaction(name = f"TAE {species.name}")
+    rxn = Reaction(name = f"{species.name}")
     rxn.stoich[spec] = -1
 
     for atom, num in species.elements.items():
