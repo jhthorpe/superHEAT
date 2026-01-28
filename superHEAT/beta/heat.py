@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
     # unapproximated superHEAT recipe
     # eventually name generation will be automated within this framework
-    recipe_ingredients = ["SCF/aC6Z", "(T)/aC5Z", "(T)/aC6Z", "PETER Anharmonic"]
+    recipe_ingredients = ["SCF/aC6Z", "[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z", "CCSD/aC6Z", "CCSD/aC7Z", "[fc] (T)/aC5Z", "[fc] (T)/aC6Z", "(T)/aC5Z", "(T)/aC6Z", "[fc] T / aCQZ", "[fc] T / aC5Z",  "PETER Anharmonic"]
     heat = load_heat(recipe_ingredients)
 
     print("Loaded HEAT set\n", heat)
