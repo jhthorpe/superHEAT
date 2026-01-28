@@ -265,7 +265,8 @@ if __name__ == "__main__":
         "SF SCF / uaCQZ", "NR SCF / uaCQZ",
         "NR D / uaCTZ", "NR D / uaCQZ", "SF D / uaCTZ", "SF D / uaCQZ",
         "NR (T) / uaCTZ", "NR (T) / uaCQZ", "SF (T) / uaCTZ", "SF (T) / uaCQZ",
-        "DBOC SCF / aCTZ", "DBOC D / aCTZ", "[fc] DBOC D / TZ", "[fc] DBOC T / TZ",
+        "DBOC SCF / aCTZ", "DBOC D / aCTZ", "[fc] DBOC D / TZ", "[fc] DBOC T / TZ", "[fc] DBOC T / DZ", "[fc] DBOC Q / DZ",
+        'SO (Hill Van Vleck/Hougen)',
         "PETER Anharmonic" 
     ]
 
@@ -295,8 +296,8 @@ if __name__ == "__main__":
         '[fc] CCSDT(Q)L/{Q,5}Z' : { 'X' : '[fc] (Q)_L / QZ',    'Y' : '[fc] (Q)_L / 5Z',    'C' : avg_schwenke(4,5) },
         'NR CCSD/uaC{T,Q}Z'     : { 'X' : 'NR D / uaCTZ',       'Y' : 'NR D / uaCQZ',       'C' : avg_schwenke(3,4) },
         'SF CCSD/uaC{T,Q}Z'     : { 'X' : 'SF D / uaCTZ',       'Y' : 'SF D / uaCQZ',       'C' : avg_schwenke(3,4) },
-        'NR CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'NR (T) / uaCTZ',     'Y' : 'NR (T) / uaCQZ',       'C' : avg_schwenke(3,4) },
-        'SF CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'SF (T) / uaCTZ',     'Y' : 'SF (T) / uaCQZ',       'C' : avg_schwenke(3,4) }
+        'NR CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'NR (T) / uaCTZ',     'Y' : 'NR (T) / uaCQZ',     'C' : avg_schwenke(3,4) },
+        'SF CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'SF (T) / uaCTZ',     'Y' : 'SF (T) / uaCQZ',     'C' : avg_schwenke(3,4) }
     })
 
     # Add core-valence data
@@ -312,15 +313,16 @@ if __name__ == "__main__":
 
     # Scalar Relativistic correction data
     heat = minus(heat, {
-        'SREL SCF/uaCQZ'        : {'A' : 'SF SCF / uaCQZ',      'B' : 'NR SCF / uaCQZ'},
-        'SREL CCSD/uaC{T,Q}Z'   : {'A' : 'SF CCSD/uaC{T,Q}Z',   'B' : 'NR CCSD/uaC{T,Q}Z'}, 
-        'SREL CCSD(T)/uaC{T,Q}Z'   : {'A' : 'SF CCSD(T)/uaC{T,Q}Z',   'B' : 'NR CCSD(T)/uaC{T,Q}Z'} 
+        'SREL SCF/uaCQZ'        : {'A' : 'SF SCF / uaCQZ',          'B' : 'NR SCF / uaCQZ'},
+        'SREL CCSD/uaC{T,Q}Z'   : {'A' : 'SF CCSD/uaC{T,Q}Z',       'B' : 'NR CCSD/uaC{T,Q}Z'}, 
+        'SREL CCSD(T)/uaC{T,Q}Z'   : {'A' : 'SF CCSD(T)/uaC{T,Q}Z', 'B' : 'NR CCSD(T)/uaC{T,Q}Z'} 
     })
 
     # DBOC correction data
     heat = minus(heat, {
         'DBOC [ae] CCSD-SCF/aCTZ'   : { 'A' : 'DBOC D / aCTZ',      'B' : 'DBOC SCF / aCTZ'},
-        'DBOC [fc] T-D/TZ'          : { 'A' : '[fc] DBOC T / TZ',   'B' : '[fc] DBOC D / TZ'}
+        'DBOC [fc] T-D/TZ'          : { 'A' : '[fc] DBOC T / TZ',   'B' : '[fc] DBOC D / TZ'},
+        'DBOC [fc] Q-T/DZ'          : { 'A' : '[fc] DBOC Q / DZ',   'B' : '[fc] DBOC T / DZ'}
     })
 
     # Correlation correction data
@@ -333,7 +335,7 @@ if __name__ == "__main__":
         '[cv] (Q)L-T/aCTZ'      : { 'A' : '[cv] CCSDT(Q)L/aCTZ',    'B' : '[cv] CCSDT/aCTZ'},
         '[fc] Q-(Q)L/TZ'        : { 'A' : '[fc] Q / TZ',            'B' : '[fc] (Q)_L / TZ'},
         '[fc] (P)L-Q/DZ'        : { 'A' : '[fc] (P)_L / DZ',        'B' : '[fc] Q / DZ'},
-        'SREL (T)-D/uaC{T,Q}Z'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z', 'B' : 'SREL CCSD/uaC{T,Q}Z'},
+        'SREL (T)-D/uaC{T,Q}Z'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z', 'B' : 'SREL CCSD/uaC{T,Q}Z'}
     })
 
 
@@ -347,42 +349,51 @@ if __name__ == "__main__":
         '[fc] Q-(Q)L/TZ',
         '[fc] (P)L-Q/DZ',
         'SREL SCF/uaCQZ', 'SREL CCSD/uaC{T,Q}Z', 'SREL (T)-D/uaC{T,Q}Z',
-        'DBOC SCF / aCTZ', 'DBOC [ae] CCSD-SCF/aCTZ', 'DBOC [fc] T-D/TZ',
+        'DBOC SCF / aCTZ', 'DBOC [ae] CCSD-SCF/aCTZ', 'DBOC [fc] T-D/TZ', 'DBOC [fc] Q-T/DZ',
+        'SO (Hill Van Vleck/Hougen)',
         "PETER Anharmonic" 
     ]
 
     heat['Total'] = sum(heat[item] for item in recipe_list)
 
-    # Grab all the columns we'll want to print
+    #Write to superHEAT csv
+    heat.to_csv('superHEAT_raw.csv')
+
+    # append total to the recipe list for the reaction analysis 
     recipe_list.append('Total')
 
     tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2kJ)
-#    anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2kJ)
-#    bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2kJ)
+    anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2kJ)
+    bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2kJ)
 
     # Last step, add ATcT values for reactions
     tae_data = add_atct(tae_data, heat_tae)
-#    anl_data = add_atct(anl_data, heat_anl)
-#    bde_data = add_atct(bde_data, heat_bde)
+    anl_data = add_atct(anl_data, heat_anl)
+    bde_data = add_atct(bde_data, heat_bde)
 
     # Now we can do statistical analysis
     tae_data["Err"] = tae_data["Total"] - tae_data["ATcT Values"]
-#    anl_data["Err"] = anl_data["Total"] - anl_data["ATcT Values"]
-#    bde_data["Err"] = bde_data["Total"] - bde_data["ATcT Values"]
+    anl_data["Err"] = anl_data["Total"] - anl_data["ATcT Values"]
+    bde_data["Err"] = bde_data["Total"] - bde_data["ATcT Values"]
+
+    #write to csv files
+    tae_data.to_csv('superHEAT_TAE.csv')
+    anl_data.to_csv('superHEAT_ANL.csv')
+    bde_data.to_csv('superHEAT_BDE.csv')
 
     print("TAE data\n", tae_data)
     print(f"TAE Mean error : {tae_data["Err"].mean()}")
     print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
     print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
     print("")
-#    print("ANL data\n", anl_data)
-#    print(f"ANL Mean error : {anl_data["Err"].mean()}")
-#    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
-#    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
-#    print("")
-#    print("BDE data\n", bde_data)
-#    print(f"BDE Mean error : {bde_data["Err"].mean()}")
-#    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
-#    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
+    print("ANL data\n", anl_data)
+    print(f"ANL Mean error : {anl_data["Err"].mean()}")
+    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
+    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
+    print("")
+    print("BDE data\n", bde_data)
+    print(f"BDE Mean error : {bde_data["Err"].mean()}")
+    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
+    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
 
     
