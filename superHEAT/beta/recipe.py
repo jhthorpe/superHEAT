@@ -16,23 +16,27 @@ class Ingredient:
     chemistry. This will later be filled with information
     about calculations, basis-sets, and other relevant options
 
-    Ingredient.name           : name of ingredient for hashing
+    Ingredient.name           : name of ingredient in dataset
     Ingredient.info           : information about ingredient
-    Ingredient.from_transform : boolean that indicates if this
-                                ingredient was generated from a 
-                                transformation or is "raw"
+    Ingredient.from_transform : name of transformation that generated
+                                this ingredient, otherwise 
+                                
+                                
     '''
 
-    def __init__(self, name = None, info = None, from_transform = False):
+    def __init__(self, name = None, info = None, from_transform = None):
         self.name = name
         self.info = info
         self.from_transform = from_transform
 
     def __str__(self):
-        s = f"Ingredient : {self.name}"
-        if (not self.from_transform):
+        s = f"Ingredient {self.name}. "
+        if self.info is not None:
+            s += f"{self.info}"
+        if (self.from_transform is None):
             s += "(Base Ingredient)"
-        s += f"\n{self.info}"
+        else:
+            s += f"(formed from {self.from_transform})"
         return s
 
 #None_Ingredient = Ingredient(name = "None Ingredient", info = "Empty Ingredient", from_transform = False)
@@ -56,6 +60,9 @@ class Transformation:
     The function the transformation executes must be formatted such that
     ingredient names are used to access dataframe columns, and coefs are 
     free to be anything.
+
+    Maybe modify this to only work with ingredient lookup names? The whole, multiple ingredient
+    thing is a little annoying
     
     def func(df, ingredient_dict, coef_dict):
         return df[ingredient_dict['some thing'].name] + coef_dict['other_thing']
@@ -97,6 +104,12 @@ class Transformation:
 #
 # Recipe class
 #
+# TODO: double check the whole "pass by reference" thing can't bite us...
+#
+# TODO: The transformations can lead to data dependencies, and we need to untangle
+#       this via a recursive apply call
+#       
+# 
 class Recipe:
     '''
     Class that contains a model chemistry "recipe", and the means to generate it
@@ -120,25 +133,32 @@ class Recipe:
         transformations : dictionary of 
         '''
         self.name = name
+
         self.ingredients = ingredients if ingredients is not None else {}
-        self.transformations = transformations if transformations is not None else {}
+        self.transformations = {}
+
+        if transformations is not None:
+            for name, trans in transformations.items():
+                self.add_transformation(trans)
 
 
     def __str__(self):
         '''
         Returns a printable string of the recipe
         '''
-        s = f"Recipe {self.name}"
+        s = f"Recipe {self.name}\n"
+        s += "Ingredients:\n"
         for name, ingredient in self.ingredients.items():
-            s += f"{name} <- {ingredient}" 
+            s += f"{ingredient.name}, " 
+        s += "\nTransformations:\n"
         for name, transform in self.transformations.items():
-            s += f"{name} <- {transformation}"
+            s += f"{transform.name}"
         return s
 
-    # Add a transformation to the list
     #
-    # TODO : 
-    def add_transformation(self, result_name, transformation):
+    # Add a transformation to the dict
+    #
+    def add_transformation(self, transformation):
         '''
         Add a transformation to the Recipe.
 
@@ -151,14 +171,25 @@ class Recipe:
         # to be constructed. Comment out
         #if name is in self.ingredients:
         #    warnings.warn(UserWarning(f"Ingredient {name} will be overwritten by transformation {transformation}"))            
-
-        # Add the resulting ingredients
-        self.ingredients[name] = Ingredient(info = name, from_transform = True)
+        # Add the resulting ingredient
+        self.ingredients[transformation.result.name] = transformation.result
+        self.ingredients[transformation.result.name].from_transformation = True
 
         # Add the ingredients from the transform
-        for name, ingredient in transformation.ingredients:
-            self.ingredients[name] = ingredient
+        for name, ingredient in transformation.ingredients.items():
+            self.ingredients[ingredient.name] = ingredient
 
+        #add transformation
+        self.transformations[transformation.name] = transformation
+
+    # Add an ingredient to the dict
+    def add_ingredient(self, ingredient):
+        '''
+        Adds ingredient to the list using name as a hash
+        '''
+        self.ingredients[ingredient.name] = ingredient
+
+    # return list of the raw ingredients the user must externally calculate
     def raw_ingredients(self):
         '''
         Returns a list of the "raw" ingredients that cannot be derived via
@@ -167,11 +198,21 @@ class Recipe:
 
         raw = {}
 
-        for name, ingredient in self.ingredients:
+        for name, ingredient in self.ingredients.items():
             if not ingredient.from_transform:
                 raw[name] = ingredient
 
         return raw
+
+    # transformation order to avoid dependencies 
+    def ordered_transforms(self):
+        '''
+        Returns the set of registered transformations
+        in the order they must be performed to avoid dependencies
+        
+        NOTE: Placeholder, not currently implemented
+        '''
+        return None
 
         
 

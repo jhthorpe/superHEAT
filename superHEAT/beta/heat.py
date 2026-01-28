@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from HEAT_species import *
+from recipe import Ingredient, Transformation, Recipe
 from atct_interface import fill_reactions
 import asyncio
 
@@ -14,6 +15,20 @@ import asyncio
 kJ2cm = 83.59347229110210
 au2cm = 219474.6313631
 au2kJ = au2cm / kJ2cm
+
+##############################################################################
+#
+# Ingredient, coef based transformation functions
+#
+def extrapolate(df, ingr, coefs):
+    '''
+    Extrapolate function for use in Transformation
+
+    df      : dataframe to operate on
+    ingr    : ingredient dictionary 
+    coefs   : coefficients dictionary
+    '''
+    return df[ingr['Y'].name] + (df[ingr['Y'].name] - df[ingr['X'].name]) * coefs['C']
 
 ##############################################################################
 # UTILITY FUNCTIONS
@@ -53,39 +68,33 @@ def load_heat(col_keep):
     
     #Drop the Species with  
     heat = heat.dropna(axis=0)
-    
-    # Start forming recipe
-#    heat['D/aC{T,Q}Z'] = heat['CCSD/aCQZ'] + (heat['CCSD/aCQZ'] - heat['CCSD/aCTZ']) * extrap_coef(3,4) 
-    
-    # (T) CBS estimate
-#    heat['(T) - D/aTZ'] = heat['[fc] (T) / aTZ'] - heat['[fc] CCSD/aTZ']
-#    heat['(T) - D/aQZ'] = heat['[fc] (T) / aQZ'] - heat['[fc] CCSD/aQZ']
-#    heat['(T)-D/a{T,Q}Z'] =  heat['(T) - D/aQZ'] + (heat['(T) - D/aQZ'] - heat['(T) - D/aTZ']) * extrap_coef(3,4)
 
+    # drop the "zeta" row
+    if 'Zeta 1' in heat.columns:
+        heat = heat.drop('Zeta 1', axis=0) 
+    
     return heat
 
 ##############################################################################
 # 
 # Generate two-point extrapolation data. 
 #
-#
-def extrapolate_2p(df_other, func, extrapolations):
+def extrapolate_2p(df_other, extrapolations):
     """
     Generates new extrapolation columns of a given heat dataframe. 
     
     Takes as input a dictionary of columns and zetas, along with a
     coefficient function. The function must be of the Schwenke form:
 
-    extrapolated_value = y_val + (y_val - x_val) * func(x_zeta, y_zeta)
+    extrapolated_value = y_val + (y_val - x_val) * coef 
 
     And the dictionary must be constructed with the following style
 
     {
        'new_col_name' : {
-           'X_name' : 'X_col_name',
-           'X_zeta' : X_col_zeta
-           'Y_name' : 'Y_col_name',
-           'Y_zeta' : Y_zeta
+            'X'  : X column name,
+            'Y'  : Y column name,
+            'C'  : coefficient 
         }
     }
     """
@@ -93,12 +102,33 @@ def extrapolate_2p(df_other, func, extrapolations):
     df = df_other 
 
     for col_name, extrap in extrapolations.items():
-        df[col_name] = df[extrap["Y_name"]] + (df[extrap["Y_name"]] - df[extrap["X_name"]]) * func(extrap["X_zeta"], extrap["Y_zeta"])
+        df[col_name] = df[extrap['Y']] + (df[extrap['Y']] - df[extrap['X']]) * extrap['C'] 
 
     return df
         
+##############################################################################
+#
+# Generate core-valence data
+#
+def minus(df_other, calcs):
+    '''
+    Contstructs returns the difference between columns 'A' and 'B':
+    A - B
 
+    Dictionary must be of style:
 
+    'new column name' :
+    {
+        'A' : 'all electron column'
+        'B' : 'frozen-core column'
+    }
+    '''
+
+    df = df_other
+    for result, cv in calcs.items():
+        df[result] = df[cv['A']] - df[cv['B']]
+
+    return df
 
 ##############################################################################
 #
@@ -193,51 +223,166 @@ if __name__ == "__main__":
     for s in ['HCCH -> CCH + H', 'CCH -> CH + C']:
         heat_bde.pop(s)
 
-    # unapproximated superHEAT recipe
-    # eventually name generation will be automated within this framework
-    recipe_ingredients = ["SCF/aC6Z", "[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z", "CCSD/aC6Z", "CCSD/aC7Z", "[fc] (T)/aC5Z", "[fc] (T)/aC6Z", "(T)/aC5Z", "(T)/aC6Z", "[fc] T / aCQZ", "[fc] T / aC5Z",  "PETER Anharmonic"]
+    # This is how we'd eventually like to do things, but I'm out of time now
+    # Generate the recipes we want to look at 
+    # superHEAT = Recipe(name = "superHEAT")
+
+    # SCF
+    # superHEAT.add_ingredient(Ingredient(name = "SCF/aC6Z"))
+
+    # CCSD
+    # CHECK that result from transform defaults to true, here
+    # superHEAT.add_transformation(Transformation(
+    #    name = "[fc] CCSD/aCV{5,6}Z",
+    #    func = extrapolate,
+    #    result = Ingredient(name = "[fc] CCSD/aCV{5,6}Z"),
+    #    ingredients = {'X' : Ingredient(name = "[fc] CCSD/aC5Z"),
+    #                   'Y' : Ingredient(name = "[fc] CCSD/aC6Z")},
+    #    coefs = { 'C' : avg_schwenke(5, 6) }
+    #))
+
+    # Add raw data
+    # BE CAREFUL NOT TO ADD DUPLICATES
+    recipe_ingredients = [
+        "SCF/aC6Z",
+        "[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z",
+        "CCSD/aC5Z", "CCSD/aC6Z", "[fc] CCSD/aC5Z",
+        "[fc] (T)/aC5Z", "[fc] (T)/aC6Z",
+        "(T)/aC5Z", "(T)/aC6Z",
+        "[fc] (T) / 5Z", "[fc] (T) / 6Z",
+        "[fc] T / 5Z", "[fc] T / 6Z",
+        "[fc] (T)/aCTZ", "[fc] (T)/aCQZ",
+        "(T)/aCTZ", "(T)/aCQZ",
+        "[fc] T / aCTZ", "[fc] T / aCQZ",
+        "T / aCTZ", "T / aCQZ",
+        "[fc] T / QZ", 
+        "[fc] (Q)_L / QZ", "[fc] (Q)_L / 5Z", 
+        "[fc] (Q)_L / aCTZ", "(Q)_L / aCTZ",
+        "[fc] (Q)_L / TZ",
+        "[fc] Q / TZ",
+        "[fc] Q / DZ",
+        "[fc] (P)_L / DZ",
+        "SF SCF / uaCQZ", "NR SCF / uaCQZ",
+        "NR D / uaCTZ", "NR D / uaCQZ", "SF D / uaCTZ", "SF D / uaCQZ",
+        "NR (T) / uaCTZ", "NR (T) / uaCQZ", "SF (T) / uaCTZ", "SF (T) / uaCQZ",
+        "DBOC SCF / aCTZ", "DBOC D / aCTZ", "[fc] DBOC D / TZ", "[fc] DBOC T / TZ",
+        "PETER Anharmonic" 
+    ]
+
+    #remove accidental duplicates
+    recipe_ingredients = list(dict.fromkeys(recipe_ingredients))
+
+    # NOTE: this will eventually be replaced by internal functions that query a dataset
     heat = load_heat(recipe_ingredients)
 
     print("Loaded HEAT set\n", heat)
 
+    # Add extrapolated data
     # Extrapolated data
-    heat = extrapolate_2p(heat, avg_schwenke, {
-        '(T)/aC{5,6}Z' : {'X_name' : '(T)/aC5Z', 'X_zeta' : 5, 'Y_name' : '(T)/aC6Z', 'Y_zeta' : 6}
+    heat = extrapolate_2p(heat, {
+        '[fc] CCSD/aC{6,7}Z'    : { 'X' : '[fc] CCSD/aC6Z',     'Y' : '[fc] CCSD/aC7Z',     'C' : avg_schwenke(6,7) },
+        '[ae] CCSD/aC{5,6}Z'    : { 'X' : 'CCSD/aC5Z',          'Y' : 'CCSD/aC6Z',          'C' : avg_schwenke(5,6) },
+        '[fc] CCSD/aC{5,6}Z'    : { 'X' : '[fc] CCSD/aC5Z',     'Y' : '[fc] CCSD/aC6Z',     'C' : avg_schwenke(5,6) },
+        '[fc] CCSD(T)/aC{5,6}Z' : { 'X' : '[fc] (T)/aC5Z',      'Y' : '[fc] (T)/aC6Z',      'C' : avg_schwenke(5,6) },
+        '[ae] CCSD(T)/aC{5,6}Z' : { 'X' : '(T)/aC5Z',           'Y' : '(T)/aC6Z',           'C' : avg_schwenke(5,6) },
+        '[fc] CCSD(T)/{5,6}Z'   : { 'X' : '[fc] (T) / 5Z',      'Y' : '[fc] (T) / 6Z',      'C' : avg_schwenke(5,6) },
+        '[fc] CCSDT/{5,6}Z'     : { 'X' : '[fc] T / 5Z',        'Y' : '[fc] T / 6Z',        'C' : avg_schwenke(5,6) },
+        '[fc] CCSD(T)/aC{T,Q}Z' : { 'X' : '[fc] (T)/aCTZ',      'Y' : '[fc] (T)/aCQZ',      'C' : avg_schwenke(3,4) },
+        '[ae] CCSD(T)/aC{T,Q}Z' : { 'X' : '(T)/aCTZ',           'Y' : '(T)/aCQZ',           'C' : avg_schwenke(3,4) },
+        '[fc] CCSDT/aC{T,Q}Z'   : { 'X' : '[fc] T / aCTZ',      'Y' : '[fc] T / aCQZ',      'C' : avg_schwenke(3,4) },
+        '[ae] CCSDT/aC{T,Q}Z'   : { 'X' : 'T / aCTZ',           'Y' : 'T / aCQZ',           'C' : avg_schwenke(3,4) },
+        '[fc] CCSDT/{Q,5}Z'     : { 'X' : '[fc] T / QZ',        'Y' : '[fc] T / 5Z',        'C' : avg_schwenke(4,5) },
+        '[fc] CCSDT(Q)L/{Q,5}Z' : { 'X' : '[fc] (Q)_L / QZ',    'Y' : '[fc] (Q)_L / 5Z',    'C' : avg_schwenke(4,5) },
+        'NR CCSD/uaC{T,Q}Z'     : { 'X' : 'NR D / uaCTZ',       'Y' : 'NR D / uaCQZ',       'C' : avg_schwenke(3,4) },
+        'SF CCSD/uaC{T,Q}Z'     : { 'X' : 'SF D / uaCTZ',       'Y' : 'SF D / uaCQZ',       'C' : avg_schwenke(3,4) },
+        'NR CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'NR (T) / uaCTZ',     'Y' : 'NR (T) / uaCQZ',       'C' : avg_schwenke(3,4) },
+        'SF CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'SF (T) / uaCTZ',     'Y' : 'SF (T) / uaCQZ',       'C' : avg_schwenke(3,4) }
     })
 
-    #Form total energies
-    heat['Total'] = heat['SCF/aC6Z'] + heat['(T)/aC{5,6}Z'] + heat['PETER Anharmonic']
+    # Add core-valence data
+    # Core-Valence data
+    heat = minus(heat, {
+        '[cv] CCSD/aC{5,6}Z'    : { 'A' : '[ae] CCSD/aC{5,6}Z',     'B' : '[fc] CCSD/aC{5,6}Z' },
+        '[cv] CCSD(T)/aC{5,6}Z' : { 'A' : '[ae] CCSD(T)/aC{5,6}Z',  'B' : '[fc] CCSD(T)/aC{5,6}Z' },
+        '[cv] CCSD(T)/aC{T,Q}Z' : { 'A' : '[ae] CCSD(T)/aC{T,Q}Z',  'B' : '[fc] CCSD(T)/aC{T,Q}Z' },
+        '[cv] CCSDT/aC{T,Q}Z'   : { 'A' : '[ae] CCSDT/aC{T,Q}Z',    'B' : '[fc] CCSDT/aC{T,Q}Z' },
+        '[cv] CCSDT/aCTZ'       : { 'A' : 'T / aCTZ',               'B' : '[fc] T / aCTZ' },
+        '[cv] CCSDT(Q)L/aCTZ'   : { 'A' : '(Q)_L / aCTZ',           'B' : '[fc] (Q)_L / aCTZ' }
+    })
 
-    # Now, form a test 
-    recipe_list = ['SCF/aC6Z', '(T)/aC{5,6}Z', 'PETER Anharmonic', 'Total']
+    # Scalar Relativistic correction data
+    heat = minus(heat, {
+        'SREL SCF/uaCQZ'        : {'A' : 'SF SCF / uaCQZ',      'B' : 'NR SCF / uaCQZ'},
+        'SREL CCSD/uaC{T,Q}Z'   : {'A' : 'SF CCSD/uaC{T,Q}Z',   'B' : 'NR CCSD/uaC{T,Q}Z'}, 
+        'SREL CCSD(T)/uaC{T,Q}Z'   : {'A' : 'SF CCSD(T)/uaC{T,Q}Z',   'B' : 'NR CCSD(T)/uaC{T,Q}Z'} 
+    })
+
+    # DBOC correction data
+    heat = minus(heat, {
+        'DBOC [ae] CCSD-SCF/aCTZ'   : { 'A' : 'DBOC D / aCTZ',      'B' : 'DBOC SCF / aCTZ'},
+        'DBOC [fc] T-D/TZ'          : { 'A' : '[fc] DBOC T / TZ',   'B' : '[fc] DBOC D / TZ'}
+    })
+
+    # Correlation correction data
+    heat = minus(heat, {
+        '[fc] (T)-D/aC{5,6}Z'   : { 'A' : '[fc] CCSD(T)/aC{5,6}Z',  'B' : '[fc] CCSD/aC{5,6}Z' }, 
+        '[cv] (T)-D/aC{5,6}Z'   : { 'A' : '[cv] CCSD(T)/aC{5,6}Z',  'B' : '[cv] CCSD/aC{5,6}Z' }, 
+        '[fc] T-(T)/{5,6}Z'     : { 'A' : '[fc] CCSDT/{5,6}Z',      'B' : '[fc] CCSD(T)/{5,6}Z' }, 
+        '[cv] T-(T)/aC{T,Q}Z'   : { 'A' : '[cv] CCSDT/aC{T,Q}Z',    'B' : '[cv] CCSD(T)/aC{T,Q}Z' },
+        '[fc] (Q)L-T/{Q,5}Z'    : { 'A' : '[fc] CCSDT(Q)L/{Q,5}Z',  'B' : '[fc] CCSDT/{Q,5}Z'},
+        '[cv] (Q)L-T/aCTZ'      : { 'A' : '[cv] CCSDT(Q)L/aCTZ',    'B' : '[cv] CCSDT/aCTZ'},
+        '[fc] Q-(Q)L/TZ'        : { 'A' : '[fc] Q / TZ',            'B' : '[fc] (Q)_L / TZ'},
+        '[fc] (P)L-Q/DZ'        : { 'A' : '[fc] (P)_L / DZ',        'B' : '[fc] Q / DZ'},
+        'SREL (T)-D/uaC{T,Q}Z'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z', 'B' : 'SREL CCSD/uaC{T,Q}Z'},
+    })
+
+
+    # Form total energies and recipe list
+    recipe_list = [
+        'SCF/aC6Z',
+        '[fc] CCSD/aC{6,7}Z', '[cv] CCSD/aC{5,6}Z',
+        '[fc] (T)-D/aC{5,6}Z', '[cv] (T)-D/aC{5,6}Z',
+        '[fc] T-(T)/{5,6}Z', '[cv] T-(T)/aC{T,Q}Z', 
+        '[fc] (Q)L-T/{Q,5}Z', '[cv] (Q)L-T/aCTZ',
+        '[fc] Q-(Q)L/TZ',
+        '[fc] (P)L-Q/DZ',
+        'SREL SCF/uaCQZ', 'SREL CCSD/uaC{T,Q}Z', 'SREL (T)-D/uaC{T,Q}Z',
+        'DBOC SCF / aCTZ', 'DBOC [ae] CCSD-SCF/aCTZ', 'DBOC [fc] T-D/TZ',
+        "PETER Anharmonic" 
+    ]
+
+    heat['Total'] = sum(heat[item] for item in recipe_list)
+
+    # Grab all the columns we'll want to print
+    recipe_list.append('Total')
 
     tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2kJ)
-    anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2kJ)
-    bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2kJ)
+#    anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2kJ)
+#    bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2kJ)
 
     # Last step, add ATcT values for reactions
     tae_data = add_atct(tae_data, heat_tae)
-    anl_data = add_atct(anl_data, heat_anl)
-    bde_data = add_atct(bde_data, heat_bde)
+#    anl_data = add_atct(anl_data, heat_anl)
+#    bde_data = add_atct(bde_data, heat_bde)
 
     # Now we can do statistical analysis
-    tae_data["Err"] = tae_data["ATcT Values"] - tae_data["Total"]
-    anl_data["Err"] = anl_data["ATcT Values"] - anl_data["Total"]
-    bde_data["Err"] = bde_data["ATcT Values"] - bde_data["Total"]
+    tae_data["Err"] = tae_data["Total"] - tae_data["ATcT Values"]
+#    anl_data["Err"] = anl_data["Total"] - anl_data["ATcT Values"]
+#    bde_data["Err"] = bde_data["Total"] - bde_data["ATcT Values"]
 
     print("TAE data\n", tae_data)
     print(f"TAE Mean error : {tae_data["Err"].mean()}")
     print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
     print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
     print("")
-    print("ANL data\n", anl_data)
-    print(f"ANL Mean error : {anl_data["Err"].mean()}")
-    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
-    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
-    print("")
-    print("BDE data\n", bde_data)
-    print(f"BDE Mean error : {bde_data["Err"].mean()}")
-    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
-    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
+#    print("ANL data\n", anl_data)
+#    print(f"ANL Mean error : {anl_data["Err"].mean()}")
+#    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
+#    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
+#    print("")
+#    print("BDE data\n", bde_data)
+#    print(f"BDE Mean error : {bde_data["Err"].mean()}")
+#    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
+#    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
 
     
