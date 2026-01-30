@@ -247,17 +247,6 @@ if __name__ == "__main__":
             if name2 != name and rxn == rxn2:
                     duplicates.append(name2)
 
-    print("")
-    print("Testing duplicate identification")
-    print(heat_all['OH -> H + O'])
-    print(heat_all['OH -> O + H'])
-    tf = heat_all['OH -> H + O'] == heat_all['OH -> O + H']
-    print(f"are duplicates? {tf}")
-    print("")
-    print("")
-    tf = heat_all['OH -> H + O'] == heat_all['OH -> H + O']
-    print(f"are duplicates? {tf}")
-
     print("The following were identified as duplicates")
     print(duplicates)
 
