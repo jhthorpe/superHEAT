@@ -449,7 +449,8 @@ for spec in tae_species:
     for atom, num in species.elements.items():
         rxn.stoich[atom] = num
 
-    heat_tae[rxn.name] = rxn 
+    heat_tae[rxn.rxn_str()] = rxn 
+#    heat_tae[rxn.name] = rxn 
 
 ##########################################################################################
 # 
@@ -478,7 +479,7 @@ for spec in anl_species:
     rxn.value = None
     rxn.unc = None
 
-    heat_anl[rxn.name] = rxn
+    heat_anl[rxn.rxn_str()] = rxn
 
 
 
@@ -488,7 +489,7 @@ for spec in anl_species:
 #
 heat_bde = {
         'H2 -> 2 H'         : Reaction(stoich = {'H2'   : -1,  'H'   : 2           }),
-        'CH -> C + H'       : Reaction(stoich = {'CH'   : -1,  'C'   : 1,  'H' : 1 }),
+        'CH -> H + C'       : Reaction(stoich = {'CH'   : -1,  'C'   : 1,  'H' : 1 }),
         'CH2 -> CH + H'     : Reaction(stoich = {'CH2'  : -1,  'CH'  : 1,  'H' : 1 }),
         'CH3 -> CH2 + H'    : Reaction(stoich = {'CH3'  : -1,  'CH2' : 1,  'H' : 1 }),
         'CH4 -> CH3 + H'    : Reaction(stoich = {'CH4'  : -1,  'CH3' : 1,  'H' : 1 }),
@@ -514,7 +515,7 @@ heat_bde = {
         'HNO -> NO + H'     : Reaction(stoich = {'HNO'  : -1,  'NO'  : 1,  'H' : 1 }),
         'NO -> N + O'       : Reaction(stoich = {'NO'   : -1,  'N'   : 1,  'O' : 1 }),
         'HNO -> NH + O'     : Reaction(stoich = {'HNO'  : -1,  'NH'  : 1,  'O' : 1 }),
-        'NH -> N + H'       : Reaction(stoich = {'NH'   : -1,  'N'   : 1,  'H' : 1 }),
+        'NH -> H + N'       : Reaction(stoich = {'NH'   : -1,  'N'   : 1,  'H' : 1 }),
         'NH3 -> NH2 + H'    : Reaction(stoich = {'NH3'  : -1,  'NH2' : 1,  'H' : 1 }),
         'NH2 -> NH + H'     : Reaction(stoich = {'NH2'  : -1,  'NH'  : 1,  'H' : 1 }),
         'N2 -> 2 N'         : Reaction(stoich = {'N2'   : -1,  'N'   : 2           }),

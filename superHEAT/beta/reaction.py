@@ -32,6 +32,8 @@ from atct import ReactionSpecies, ReactionResult
 from species import Elements, Species
 
 #
+# TODO: make it so that reaction accepts dict of Species instead of strings
+#
 # name   : a string representing reaction name
 # stoich : a dictionary that pairs strings representing reactants/products 
 #              and their stoichiometry (- for reactants, + for products). Note
@@ -64,7 +66,7 @@ class Reaction():
         }
         return atct_query
 
-    def __str__(self):
+    def rxn_str(self):
         p_plus = False
         r_plus = False
         rct_s = ""
@@ -88,7 +90,12 @@ class Reaction():
                     rct_s += f"{spec}"
                 else:
                     rct_s += f"{-num:>} {spec}"
-        val_s = ""
+        return rct_s + " -> " + prd_s
+
+
+    def __str__(self):
+        rxn_s = self.rxn_str()
+        val_s = "" 
         if (self.value is None):
             val_s += f" ( N/A"
         else:
@@ -97,4 +104,33 @@ class Reaction():
             val_s += f" +/- {self.unc:>5.3f} kJ/mol)"
         else:
             val_s += f" +/- N/A kJ/mol)"
-        return rct_s + " -> " + prd_s + val_s 
+        return rxn_s + val_s 
+
+    def __eq__(self, other):
+        '''
+        Compare two reactions.
+        '''
+        if isinstance(other, Reaction):
+            for a_s, a_n in self.stoich.items():
+                if (abs(a_n) < 1e-14):
+                    continue
+                found = False
+                for b_s, b_n in other.stoich.items():
+                    if (a_s == b_s and abs(a_n - b_n) < 1e-14):
+                        found = True
+                        continue
+                if not found:
+                    return False
+            for b_s, b_n in other.stoich.items():
+                if (abs(b_n) < 1e-14):
+                    continue
+                found = False
+                for a_s, a_n in self.stoich.items():
+                    if (a_s == b_s and abs(a_n - b_n) < 1e-14):
+                        found = True
+                        continue
+                if not found:
+                    return False
+            return True     
+        else:
+            return NotImplemented

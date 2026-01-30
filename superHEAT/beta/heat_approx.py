@@ -217,54 +217,11 @@ def l2d(data):
 # and use it to (semi) automate all this analysis
 if __name__ == "__main__":
 
-#    bad_species = ["CCH", "NH", "CH", "HO2", "OF", "CN" ]
-    bad_species = ["CCH"]
-
-    # go through and remove reactions with bad species
-    for set_name, data in {'TAE' : heat_tae, 'ANL' : heat_anl, 'BDE' : heat_bde}.items():
-        bad_list = []
-
-        for name, rxn in data.items():
-            for bad in bad_species:
-                for spec in rxn.stoich: 
-                    if (bad == spec):
-                        bad_list.append(name)
-
-        #remove duplicates
-        bad_list = list(dict.fromkeys(bad_list)) 
-
-        print(f"Following reactions were removed from {set_name}")
-        print(bad_list)
-
-        for bad in bad_list:
-            data.pop(bad)
-    
-    # create the "all" dataset
-    duplicates = []
-    heat_all = heat_tae | heat_anl | heat_bde
-    for name, rxn in heat_all.items():
-        for name2, rxn2 in heat_all.items():
-            if name2 != name and rxn == rxn2:
-                    duplicates.append(name2)
-
-    print("")
-    print("Testing duplicate identification")
-    print(heat_all['OH -> H + O'])
-    print(heat_all['OH -> O + H'])
-    tf = heat_all['OH -> H + O'] == heat_all['OH -> O + H']
-    print(f"are duplicates? {tf}")
-    print("")
-    print("")
-    tf = heat_all['OH -> H + O'] == heat_all['OH -> H + O']
-    print(f"are duplicates? {tf}")
-
-    print("The following were identified as duplicates")
-    print(duplicates)
-
-    for dup in duplicates:
-        heat_all.pop(dup)
-
-    # screen all for formally identical reactions
+    #CCH is problematic at the moment, remove it from tests
+    heat_tae.pop('CCH')
+    heat_anl.pop('CCH')
+    for s in ['HCCH -> CCH + H', 'CCH -> CH + C']:
+        heat_bde.pop(s)
 
     # This is how we'd eventually like to do things, but I'm out of time now
     # Generate the recipes we want to look at 
@@ -288,7 +245,7 @@ if __name__ == "__main__":
     # BE CAREFUL NOT TO ADD DUPLICATES
     recipe_ingredients = [
         "SCF/aC6Z",
-        "[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z",
+        "[fc] CCSD/aC5Z", "[fc] CCSD/aC6Z",
         "CCSD/aC5Z", "CCSD/aC6Z", "[fc] CCSD/aC5Z",
         "[fc] (T)/aC5Z", "[fc] (T)/aC6Z",
         "(T)/aC5Z", "(T)/aC6Z",
@@ -324,7 +281,7 @@ if __name__ == "__main__":
     # Add extrapolated data
     # Extrapolated data
     heat = extrapolate_2p(heat, {
-        '[fc] CCSD/aC{6,7}Z'    : { 'X' : '[fc] CCSD/aC6Z',     'Y' : '[fc] CCSD/aC7Z',     'C' : avg_schwenke(6,7) },
+        '[fc] CCSD/aC{5,6}Z'    : { 'X' : '[fc] CCSD/aC5Z',     'Y' : '[fc] CCSD/aC6Z',     'C' : avg_schwenke(5,6) },
         '[ae] CCSD/aC{5,6}Z'    : { 'X' : 'CCSD/aC5Z',          'Y' : 'CCSD/aC6Z',          'C' : avg_schwenke(5,6) },
         '[fc] CCSD/aC{5,6}Z'    : { 'X' : '[fc] CCSD/aC5Z',     'Y' : '[fc] CCSD/aC6Z',     'C' : avg_schwenke(5,6) },
         '[fc] CCSD(T)/aC{5,6}Z' : { 'X' : '[fc] (T)/aC5Z',      'Y' : '[fc] (T)/aC6Z',      'C' : avg_schwenke(5,6) },
@@ -385,7 +342,7 @@ if __name__ == "__main__":
     # Form total energies and recipe list
     recipe_list = [
         'SCF/aC6Z',
-        '[fc] CCSD/aC{6,7}Z', '[cv] CCSD/aC{5,6}Z',
+        '[fc] CCSD/aC{5,6}Z', '[cv] CCSD/aC{5,6}Z',
         '[fc] (T)-D/aC{5,6}Z', '[cv] (T)-D/aC{5,6}Z',
         '[fc] T-(T)/{5,6}Z', '[cv] T-(T)/aC{T,Q}Z', 
         '[fc] (Q)L-T/{Q,5}Z', '[cv] (Q)L-T/aCTZ',
@@ -408,54 +365,39 @@ if __name__ == "__main__":
     tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2cm)
     anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2cm)
     bde_data = reaction_data(heat, heat_bde, recipe_list, conversion = au2cm)
-    all_data = reaction_data(heat, heat_all, recipe_list, conversion = au2cm)
 
     # Last step, add ATcT values for reactions
     tae_data = add_atct(tae_data, heat_tae, conversion = kJ2cm)
     anl_data = add_atct(anl_data, heat_anl, conversion = kJ2cm)
     bde_data = add_atct(bde_data, heat_bde, conversion = kJ2cm)
-    all_data = add_atct(all_data, heat_all, conversion = kJ2cm)
 
     # Now we can do statistical analysis
     tae_data["Err"] = tae_data["Total"] - tae_data["ATcT Values"]
     anl_data["Err"] = anl_data["Total"] - anl_data["ATcT Values"]
     bde_data["Err"] = bde_data["Total"] - bde_data["ATcT Values"]
-    all_data["Err"] = all_data["Total"] - all_data["ATcT Values"]
 
     # Absoulte value of error
     tae_data["|Err|"] = np.abs(tae_data["Err"])
     anl_data["|Err|"] = np.abs(anl_data["Err"])
     bde_data["|Err|"] = np.abs(bde_data["Err"])
-    all_data["|Err|"] = np.abs(all_data["Err"])
 
     #write to csv files
-    tae_data.to_csv('superHEAT_TAE.csv')
-    anl_data.to_csv('superHEAT_ANL.csv')
-    bde_data.to_csv('superHEAT_BDE.csv')
-    all_data.to_csv('superHEAT_ALL.csv')
+    tae_data.to_csv('superHEAT_approx_TAE.csv')
+    anl_data.to_csv('superHEAT_approx_ANL.csv')
+    bde_data.to_csv('superHEAT_approx_BDE.csv')
 
     print("TAE data\n", tae_data)
     print(f"TAE Mean error : {tae_data["Err"].mean()}")
     print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
-    print(f"TAE MAE :, {tae_data["|Err|"].mean()}")
     print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
     print("")
     print("ANL data\n", anl_data)
     print(f"ANL Mean error : {anl_data["Err"].mean()}")
-    print(f"ANL Std.Dev. : {anl_data["Err"].std(ddof=1)}")
-    print(f"ANL MAE :, {anl_data["|Err|"].mean()}")
+    print(f"ANL Std.Dev. error : {anl_data["Err"].std(ddof=1)}")
     print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
     print("")
     print("BDE data\n", bde_data)
     print(f"BDE Mean error : {bde_data["Err"].mean()}")
-    print(f"BDE Std.Dev.: {bde_data["Err"].std(ddof=1)}")
-    print(f"BDE MAE :, {bde_data["|Err|"].mean()}")
+    print(f"BDE Std.Dev. error : {bde_data["Err"].std(ddof=1)}")
     print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
-    print("")
-    print("ALL data\n", all_data)
-    print(f"ALL Mean error : {all_data["Err"].mean()}")
-    print(f"ALL Std.Dev. : {all_data["Err"].std(ddof=1)}")
-    print(f"ALL MAE :, {all_data["|Err|"].mean()}")
-    print(f"ALL 2*sigma : {2*l2d(all_data["Err"])}")
-
 
