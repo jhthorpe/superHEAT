@@ -24,5 +24,14 @@ sdist
 develop-eggs
 .installed.cfg
 
+#Images
+*.pdf
+*.png
+*.jpeg
+*.jpg
+*.tiff
+*.eps
+*.heif
+
 # Installer logs
 pip-log.txt
