@@ -510,7 +510,7 @@ heat_bde = {
         'HOOH -> HO2 + H'   : Reaction(stoich = {'HOOH' : -1,  'HO2' : 1,  'H' : 1 }),
         'HOOH -> 2 OH'      : Reaction(stoich = {'HOOH' : -1,  'OH'  : 2           }),
         'H2O -> OH + H'     : Reaction(stoich = {'H2O'  : -1,  'OH'  : 1,  'H' : 1 }),
-        'OH -> O + H'       : Reaction(stoich = {'OH'   : -1,  'O'   : 1,  'H' : 1 }),
+        'OH -> H + O'       : Reaction(stoich = {'OH'   : -1,  'H'   : 1,  'O' : 1 }),
         'HNO -> NO + H'     : Reaction(stoich = {'HNO'  : -1,  'NO'  : 1,  'H' : 1 }),
         'NO -> N + O'       : Reaction(stoich = {'NO'   : -1,  'N'   : 1,  'O' : 1 }),
         'HNO -> NH + O'     : Reaction(stoich = {'HNO'  : -1,  'NH'  : 1,  'O' : 1 }),
@@ -522,3 +522,6 @@ heat_bde = {
         'HCN -> CN + H'     : Reaction(stoich = {'HCN'  : -1,  'CN'  : 1,  'H' : 1 }),
         'CN -> C + N'       : Reaction(stoich = {'CN'   : -1,  'C'   : 1,  'N' : 1 })
 }
+        
+#'OH + O2 -> HO2 + O': Reaction(stoich = {'OH'   : -1,  'O2'  : -1, 'HO2' : 1, 'O' : 1})
+#'HOOH -> H2 + O2'   : Reaction(stoich = {'HOOH' : -1,  'H2'  : 1,  'O2': 1 })

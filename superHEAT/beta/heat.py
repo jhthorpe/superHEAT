@@ -3,6 +3,7 @@ import numpy as np
 from HEAT_species import *
 from recipe import Ingredient, Transformation, Recipe
 from atct_interface import fill_reactions
+import scipy.stats as stats
 import asyncio
 
 ##############################################################################
@@ -15,6 +16,8 @@ import asyncio
 kJ2cm = 83.59347229110210
 au2cm = 219474.6313631
 au2kJ = au2cm / kJ2cm
+ev2kJ = 96.48533212331060
+ev2cm = 8065.5439373478
 
 ##############################################################################
 #
@@ -38,6 +41,9 @@ def extrapolate(df, ingr, coefs):
 def avg_schwenke(x,y):
     return 0.5*( x**3/(y**3 - x**3) + (x+0.5)**4/((y+0.5)**4 - (x+0.5)**4) )
 
+def helgaker_schwenke(x,y):
+    return x**3/(y**3 - x**3)
+
 ##############################################################################
 #
 # Load HEAT raw data and generate the various columns we need 
@@ -60,8 +66,8 @@ def load_heat(col_keep):
         print(f"WARNING: Rows that will be removed with this recipe : {len(nan_rows)}")
         print(nan_rows)
 
-    # Modify ZPE since it's in cm-1 at the moment
-    zpe_names = ["PETER Anharmonic", "ZPE HEAT"]
+    # Modify ZPE terms since it's in cm-1 at the moment
+    zpe_names = ["PETER Anharmonic", "ZPE HEAT", "PETER Unc.", 'ZPE Best', 'ZPE Harmonic Best', 'ZPE Anharm Best', 'ZPE Harmonic Second best', 'ZPE Anharm Second Best']
     for name in zpe_names:
         if name in heat.columns:
             heat[name] = heat[name] / au2cm
@@ -108,7 +114,7 @@ def extrapolate_2p(df_other, extrapolations):
         
 ##############################################################################
 #
-# Generate core-valence data
+# minus 
 #
 def minus(df_other, calcs):
     '''
@@ -119,14 +125,64 @@ def minus(df_other, calcs):
 
     'new column name' :
     {
-        'A' : 'all electron column'
-        'B' : 'frozen-core column'
+        'A' : 'first column'
+        'B' : 'second column'
     }
     '''
 
     df = df_other
     for result, cv in calcs.items():
         df[result] = df[cv['A']] - df[cv['B']]
+
+    return df
+
+##############################################################################
+#
+# plus
+#
+def plus(df_other, calcs):
+    '''
+    Contstructs returns the sum of columns 'A' and 'B':
+
+    Dictionary must be of style:
+
+    'new column name' :
+    {
+        'A' : 'first column'
+        'B' : 'second column'
+    }
+    '''
+
+    df = df_other
+    for result, inp in calcs.items():
+        df[result] = df[inp['A']] + df[inp['B']]
+
+    return df
+
+##############################################################################
+#
+# Basis Set Incompleteness Estimator
+#
+def bsie_est(df_other, calcs):
+    '''
+    Estimates the basis-set incompleteness uncertainty given a) your best basis 
+
+    Dictionary must be of style:
+
+    'new column name' :
+    {
+        'A' : 'your best extrapolated value around which error is centered'
+        'B' : 'extrapolated value using the same basis sets, but a different extraplation'
+        'C' : 'your second-best extrapolated value using the same extrapolation as "A"'
+    }
+
+    return max(abs(A - B), abs(A - C))
+    '''
+
+    df = df_other
+
+    for result, inp in calcs.items():
+        df[result] = max( abs(df[inp['A']] - df[inp['B']]), abs(df[inp['A']] - df[inp['C']]) )
 
     return df
 
@@ -207,6 +263,11 @@ def l2d(data):
     val = None if n <= 1 else np.sqrt(np.sum(np.square(data))/(n-1)) 
     return val
 
+##############################################################################
+def conf_95(data, axis=0):
+    n = data.shape[0]
+    st = stats.t.ppf(0.975, n - 1)
+    return st * np.sqrt(np.sum(np.square(data), axis=axis)/(n-1))
 
 
 ##############################################################################
@@ -219,6 +280,8 @@ if __name__ == "__main__":
 
 #    bad_species = ["CCH", "NH", "CH", "HO2", "OF", "CN" ]
     bad_species = ["CCH"]
+
+    print("The following are removed from the benchmkark :", bad_species)
 
     # go through and remove reactions with bad species
     for set_name, data in {'TAE' : heat_tae, 'ANL' : heat_anl, 'BDE' : heat_bde}.items():
@@ -253,6 +316,9 @@ if __name__ == "__main__":
     for dup in duplicates:
         heat_all.pop(dup)
 
+    #This is not exactly a dupliate, but is identical to -1/2( H2 -> 2 H )  
+    heat_all.pop("H -> 0.5 H2")
+
     # screen all for formally identical reactions
 
     # This is how we'd eventually like to do things, but I'm out of time now
@@ -274,32 +340,31 @@ if __name__ == "__main__":
     #))
 
     # Add raw data
-    # BE CAREFUL NOT TO ADD DUPLICATES
     recipe_ingredients = [
-        "SCF/aC6Z",
-        "[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z",
-        "CCSD/aC5Z", "CCSD/aC6Z", "[fc] CCSD/aC5Z",
-        "[fc] (T)/aC5Z", "[fc] (T)/aC6Z",
-        "(T)/aC5Z", "(T)/aC6Z",
-        "[fc] (T) / 5Z", "[fc] (T) / 6Z",
-        "[fc] T / 5Z", "[fc] T / 6Z",
+        "Bond order",
+        "SCF/aC5Z","SCF/aC6Z",
+        "[fc] CCSD/aCTZ","[fc] CCSD/aCQZ","[fc] CCSD/aC5Z","[fc] CCSD/aC6Z", "[fc] CCSD/aC7Z",
+        "CCSD/aCTZ", "CCSD/aCQZ", "CCSD/aC5Z", "CCSD/aC6Z", "[fc] CCSD/aC5Z",
+        "[fc] (T)/aCTZ", "[fc] (T)/aCQZ","[fc] (T)/aC5Z", "[fc] (T)/aC6Z",
+        "(T)/aCTZ", "(T)/aCQZ","(T)/aC5Z", "(T)/aC6Z",
+        "[fc] (T) / QZ","[fc] (T) / 5Z", "[fc] (T) / 6Z",
+        "[fc] T / QZ","[fc] T / 5Z", "[fc] T / 6Z",
         "[fc] (T)/aCTZ", "[fc] (T)/aCQZ",
         "(T)/aCTZ", "(T)/aCQZ",
         "[fc] T / aCTZ", "[fc] T / aCQZ",
         "T / aCTZ", "T / aCQZ",
-        "[fc] T / QZ", 
-        "[fc] (Q)_L / QZ", "[fc] (Q)_L / 5Z", 
+        "[fc] T / TZ","[fc] T / QZ", 
+        "[fc] (Q)_L / TZ", "[fc] (Q)_L / QZ", "[fc] (Q)_L / 5Z", 
         "[fc] (Q)_L / aCTZ", "(Q)_L / aCTZ",
-        "[fc] (Q)_L / TZ",
-        "[fc] Q / TZ",
-        "[fc] Q / DZ",
+        "[fc] (Q)_L / DZ","[fc] (Q)_L / TZ",
+        "[fc] Q / DZ", "[fc] Q / TZ",
         "[fc] (P)_L / DZ",
-        "SF SCF / uaCQZ", "NR SCF / uaCQZ",
+        "SF SCF / uaCQZ", "NR SCF / uaCQZ", "SF SCF / uaCTZ", "NR SCF / uaCTZ",
         "NR D / uaCTZ", "NR D / uaCQZ", "SF D / uaCTZ", "SF D / uaCQZ",
         "NR (T) / uaCTZ", "NR (T) / uaCQZ", "SF (T) / uaCTZ", "SF (T) / uaCQZ",
         "DBOC SCF / aCTZ", "DBOC D / aCTZ", "[fc] DBOC D / TZ", "[fc] DBOC T / TZ", "[fc] DBOC T / DZ", "[fc] DBOC Q / DZ",
-        'SO (Hill Van Vleck/Hougen)',
-        "PETER Anharmonic" 
+        "SO (Hill Van Vleck/Hougen)","SO (Herzberg)",
+        "ZPE Best", "ZPE Harmonic Best", "ZPE Anharm Best", "ZPE Harmonic Second best", "ZPE Anharm Second Best"
     ]
 
     #remove accidental duplicates
@@ -316,10 +381,16 @@ if __name__ == "__main__":
         '[fc] CCSD/aC{6,7}Z'    : { 'X' : '[fc] CCSD/aC6Z',     'Y' : '[fc] CCSD/aC7Z',     'C' : avg_schwenke(6,7) },
         '[ae] CCSD/aC{5,6}Z'    : { 'X' : 'CCSD/aC5Z',          'Y' : 'CCSD/aC6Z',          'C' : avg_schwenke(5,6) },
         '[fc] CCSD/aC{5,6}Z'    : { 'X' : '[fc] CCSD/aC5Z',     'Y' : '[fc] CCSD/aC6Z',     'C' : avg_schwenke(5,6) },
+        '[ae] CCSD/aC{Q,5}Z'    : { 'X' : 'CCSD/aCQZ',          'Y' : 'CCSD/aC5Z',          'C' : avg_schwenke(4,5) },
+        '[fc] CCSD/aC{Q,5}Z'    : { 'X' : '[fc] CCSD/aCQZ',     'Y' : '[fc] CCSD/aC5Z',     'C' : avg_schwenke(4,5) },
         '[fc] CCSD(T)/aC{5,6}Z' : { 'X' : '[fc] (T)/aC5Z',      'Y' : '[fc] (T)/aC6Z',      'C' : avg_schwenke(5,6) },
         '[ae] CCSD(T)/aC{5,6}Z' : { 'X' : '(T)/aC5Z',           'Y' : '(T)/aC6Z',           'C' : avg_schwenke(5,6) },
+        '[fc] CCSD(T)/aC{Q,5}Z' : { 'X' : '[fc] (T)/aCQZ',      'Y' : '[fc] (T)/aC5Z',      'C' : avg_schwenke(4,5) },
+        '[ae] CCSD(T)/aC{Q,5}Z' : { 'X' : '(T)/aCQZ',           'Y' : '(T)/aC5Z',           'C' : avg_schwenke(4,5) },
         '[fc] CCSD(T)/{5,6}Z'   : { 'X' : '[fc] (T) / 5Z',      'Y' : '[fc] (T) / 6Z',      'C' : avg_schwenke(5,6) },
+        '[fc] CCSD(T)/{Q,5}Z'   : { 'X' : '[fc] (T) / QZ',      'Y' : '[fc] (T) / 5Z',      'C' : avg_schwenke(4,5) },
         '[fc] CCSDT/{5,6}Z'     : { 'X' : '[fc] T / 5Z',        'Y' : '[fc] T / 6Z',        'C' : avg_schwenke(5,6) },
+        '[fc] CCSDT/{Q,5}Z'     : { 'X' : '[fc] T / QZ',        'Y' : '[fc] T / 5Z',        'C' : avg_schwenke(4,5) },
         '[fc] CCSD(T)/aC{T,Q}Z' : { 'X' : '[fc] (T)/aCTZ',      'Y' : '[fc] (T)/aCQZ',      'C' : avg_schwenke(3,4) },
         '[ae] CCSD(T)/aC{T,Q}Z' : { 'X' : '(T)/aCTZ',           'Y' : '(T)/aCQZ',           'C' : avg_schwenke(3,4) },
         '[fc] CCSDT/aC{T,Q}Z'   : { 'X' : '[fc] T / aCTZ',      'Y' : '[fc] T / aCQZ',      'C' : avg_schwenke(3,4) },
@@ -332,22 +403,66 @@ if __name__ == "__main__":
         'SF CCSD(T)/uaC{T,Q}Z'  : { 'X' : 'SF (T) / uaCTZ',     'Y' : 'SF (T) / uaCQZ',     'C' : avg_schwenke(3,4) }
     })
 
+    # Add Helgaker extrapolated data 
+    # Extrapolated data
+    heat = extrapolate_2p(heat, {
+        '[fc] CCSD/aC{6,7}Z : Helgaker'    : { 'X' : '[fc] CCSD/aC6Z',     'Y' : '[fc] CCSD/aC7Z',     'C' : helgaker_schwenke(6,7) },
+        '[ae] CCSD/aC{5,6}Z : Helgaker'    : { 'X' : 'CCSD/aC5Z',          'Y' : 'CCSD/aC6Z',          'C' : helgaker_schwenke(5,6) },
+        '[fc] CCSD/aC{5,6}Z : Helgaker'    : { 'X' : '[fc] CCSD/aC5Z',     'Y' : '[fc] CCSD/aC6Z',     'C' : helgaker_schwenke(5,6) },
+        '[fc] CCSD(T)/aC{5,6}Z : Helgaker' : { 'X' : '[fc] (T)/aC5Z',      'Y' : '[fc] (T)/aC6Z',      'C' : helgaker_schwenke(5,6) },
+        '[ae] CCSD(T)/aC{5,6}Z : Helgaker' : { 'X' : '(T)/aC5Z',           'Y' : '(T)/aC6Z',           'C' : helgaker_schwenke(5,6) },
+        '[fc] CCSD(T)/{5,6}Z : Helgaker'   : { 'X' : '[fc] (T) / 5Z',      'Y' : '[fc] (T) / 6Z',      'C' : helgaker_schwenke(5,6) },
+        '[fc] CCSDT/{5,6}Z : Helgaker'     : { 'X' : '[fc] T / 5Z',        'Y' : '[fc] T / 6Z',        'C' : helgaker_schwenke(5,6) },
+        '[fc] CCSD(T)/aC{T,Q}Z : Helgaker' : { 'X' : '[fc] (T)/aCTZ',      'Y' : '[fc] (T)/aCQZ',      'C' : helgaker_schwenke(3,4) },
+        '[ae] CCSD(T)/aC{T,Q}Z : Helgaker' : { 'X' : '(T)/aCTZ',           'Y' : '(T)/aCQZ',           'C' : helgaker_schwenke(3,4) },
+        '[fc] CCSDT/aC{T,Q}Z : Helgaker'   : { 'X' : '[fc] T / aCTZ',      'Y' : '[fc] T / aCQZ',      'C' : helgaker_schwenke(3,4) },
+        '[ae] CCSDT/aC{T,Q}Z : Helgaker'   : { 'X' : 'T / aCTZ',           'Y' : 'T / aCQZ',           'C' : helgaker_schwenke(3,4) },
+        '[fc] CCSDT/{Q,5}Z : Helgaker'     : { 'X' : '[fc] T / QZ',        'Y' : '[fc] T / 5Z',        'C' : helgaker_schwenke(4,5) },
+        '[fc] CCSDT(Q)L/{Q,5}Z : Helgaker' : { 'X' : '[fc] (Q)_L / QZ',    'Y' : '[fc] (Q)_L / 5Z',    'C' : helgaker_schwenke(4,5) },
+        'NR CCSD/uaC{T,Q}Z : Helgaker'     : { 'X' : 'NR D / uaCTZ',       'Y' : 'NR D / uaCQZ',       'C' : helgaker_schwenke(3,4) },
+        'SF CCSD/uaC{T,Q}Z : Helgaker'     : { 'X' : 'SF D / uaCTZ',       'Y' : 'SF D / uaCQZ',       'C' : helgaker_schwenke(3,4) },
+        'NR CCSD(T)/uaC{T,Q}Z : Helgaker'  : { 'X' : 'NR (T) / uaCTZ',     'Y' : 'NR (T) / uaCQZ',     'C' : helgaker_schwenke(3,4) },
+        'SF CCSD(T)/uaC{T,Q}Z : Helgaker'  : { 'X' : 'SF (T) / uaCTZ',     'Y' : 'SF (T) / uaCQZ',     'C' : helgaker_schwenke(3,4) }
+    })
+
     # Add core-valence data
     # Core-Valence data
     heat = minus(heat, {
         '[cv] CCSD/aC{5,6}Z'    : { 'A' : '[ae] CCSD/aC{5,6}Z',     'B' : '[fc] CCSD/aC{5,6}Z' },
+        '[cv] CCSD/aC{Q,5}Z'    : { 'A' : '[ae] CCSD/aC{Q,5}Z',     'B' : '[fc] CCSD/aC{Q,5}Z' },
         '[cv] CCSD(T)/aC{5,6}Z' : { 'A' : '[ae] CCSD(T)/aC{5,6}Z',  'B' : '[fc] CCSD(T)/aC{5,6}Z' },
+        '[cv] CCSD(T)/aC{Q,5}Z' : { 'A' : '[ae] CCSD(T)/aC{Q,5}Z',  'B' : '[fc] CCSD(T)/aC{Q,5}Z' },
         '[cv] CCSD(T)/aC{T,Q}Z' : { 'A' : '[ae] CCSD(T)/aC{T,Q}Z',  'B' : '[fc] CCSD(T)/aC{T,Q}Z' },
         '[cv] CCSDT/aC{T,Q}Z'   : { 'A' : '[ae] CCSDT/aC{T,Q}Z',    'B' : '[fc] CCSDT/aC{T,Q}Z' },
+        '[cv] CCSDT/aCQZ'       : { 'A' : 'T / aCQZ',               'B' : '[fc] T / aCQZ' },
+        '[cv] CCSD(T)/aCQZ'     : { 'A' : '(T)/aCQZ',               'B' : '[fc] (T)/aCQZ' },
         '[cv] CCSDT/aCTZ'       : { 'A' : 'T / aCTZ',               'B' : '[fc] T / aCTZ' },
         '[cv] CCSDT(Q)L/aCTZ'   : { 'A' : '(Q)_L / aCTZ',           'B' : '[fc] (Q)_L / aCTZ' }
     })
 
+    # Core-valence with Helgaker
+    heat = minus(heat, {
+        '[cv] CCSD/aC{5,6}Z : Helgaker'    : { 'A' : '[ae] CCSD/aC{5,6}Z : Helgaker',     'B' : '[fc] CCSD/aC{5,6}Z : Helgaker' },
+        '[cv] CCSD(T)/aC{5,6}Z : Helgaker' : { 'A' : '[ae] CCSD(T)/aC{5,6}Z : Helgaker',  'B' : '[fc] CCSD(T)/aC{5,6}Z : Helgaker' },
+        '[cv] CCSD(T)/aC{T,Q}Z : Helgaker' : { 'A' : '[ae] CCSD(T)/aC{T,Q}Z : Helgaker',  'B' : '[fc] CCSD(T)/aC{T,Q}Z : Helgaker' },
+        '[cv] CCSDT/aC{T,Q}Z : Helgaker'   : { 'A' : '[ae] CCSDT/aC{T,Q}Z : Helgaker',    'B' : '[fc] CCSDT/aC{T,Q}Z : Helgaker' }
+    })
+
+
     # Scalar Relativistic correction data
     heat = minus(heat, {
-        'SREL SCF/uaCQZ'        : {'A' : 'SF SCF / uaCQZ',          'B' : 'NR SCF / uaCQZ'},
-        'SREL CCSD/uaC{T,Q}Z'   : {'A' : 'SF CCSD/uaC{T,Q}Z',       'B' : 'NR CCSD/uaC{T,Q}Z'}, 
-        'SREL CCSD(T)/uaC{T,Q}Z'   : {'A' : 'SF CCSD(T)/uaC{T,Q}Z', 'B' : 'NR CCSD(T)/uaC{T,Q}Z'} 
+        'SREL SCF/uaCQZ'            : {'A' : 'SF SCF / uaCQZ',          'B' : 'NR SCF / uaCQZ'},
+        'SREL SCF/uaCTZ'            : {'A' : 'SF SCF / uaCTZ',          'B' : 'NR SCF / uaCTZ'},
+        'SREL CCSD/uaCQZ'           : {'A' : 'SF D / uaCQZ',            'B' : 'NR D / uaCQZ'},
+        'SREL CCSD(T)/uaCQZ'        : {'A' : 'SF (T) / uaCQZ',          'B' : 'NR (T) / uaCQZ'},
+        'SREL CCSD/uaC{T,Q}Z'       : {'A' : 'SF CCSD/uaC{T,Q}Z',       'B' : 'NR CCSD/uaC{T,Q}Z'}, 
+        'SREL CCSD(T)/uaC{T,Q}Z'    : {'A' : 'SF CCSD(T)/uaC{T,Q}Z',    'B' : 'NR CCSD(T)/uaC{T,Q}Z'} 
+    })
+
+    # Scalar Relativistic with Helgaker
+    heat = minus(heat, {
+        'SREL CCSD/uaC{T,Q}Z : Helgaker'    : {'A' : 'SF CCSD/uaC{T,Q}Z : Helgaker',    'B' : 'NR CCSD/uaC{T,Q}Z : Helgaker'}, 
+        'SREL CCSD(T)/uaC{T,Q}Z : Helgaker' : {'A' : 'SF CCSD(T)/uaC{T,Q}Z : Helgaker', 'B' : 'NR CCSD(T)/uaC{T,Q}Z : Helgaker'} 
     })
 
     # DBOC correction data
@@ -361,15 +476,50 @@ if __name__ == "__main__":
     heat = minus(heat, {
         '[fc] (T)-D/aC{5,6}Z'   : { 'A' : '[fc] CCSD(T)/aC{5,6}Z',  'B' : '[fc] CCSD/aC{5,6}Z' }, 
         '[cv] (T)-D/aC{5,6}Z'   : { 'A' : '[cv] CCSD(T)/aC{5,6}Z',  'B' : '[cv] CCSD/aC{5,6}Z' }, 
+        '[fc] (T)-D/aC{Q,5}Z'   : { 'A' : '[fc] CCSD(T)/aC{Q,5}Z',  'B' : '[fc] CCSD/aC{Q,5}Z' }, 
+        '[cv] (T)-D/aC{Q,5}Z'   : { 'A' : '[cv] CCSD(T)/aC{Q,5}Z',  'B' : '[cv] CCSD/aC{Q,5}Z' }, 
         '[fc] T-(T)/{5,6}Z'     : { 'A' : '[fc] CCSDT/{5,6}Z',      'B' : '[fc] CCSD(T)/{5,6}Z' }, 
+        '[fc] T-(T)/{Q,5}Z'     : { 'A' : '[fc] CCSDT/{Q,5}Z',      'B' : '[fc] CCSD(T)/{Q,5}Z' }, 
         '[cv] T-(T)/aC{T,Q}Z'   : { 'A' : '[cv] CCSDT/aC{T,Q}Z',    'B' : '[cv] CCSD(T)/aC{T,Q}Z' },
+        '[cv] T-(T)/aCQZ'       : { 'A' : '[cv] CCSDT/aCQZ',        'B' : '[cv] CCSD(T)/aCQZ' },
         '[fc] (Q)L-T/{Q,5}Z'    : { 'A' : '[fc] CCSDT(Q)L/{Q,5}Z',  'B' : '[fc] CCSDT/{Q,5}Z'},
         '[cv] (Q)L-T/aCTZ'      : { 'A' : '[cv] CCSDT(Q)L/aCTZ',    'B' : '[cv] CCSDT/aCTZ'},
         '[fc] Q-(Q)L/TZ'        : { 'A' : '[fc] Q / TZ',            'B' : '[fc] (Q)_L / TZ'},
+        '[fc] Q-(Q)L/DZ'        : { 'A' : '[fc] Q / DZ',            'B' : '[fc] (Q)_L / DZ'},
         '[fc] (P)L-Q/DZ'        : { 'A' : '[fc] (P)_L / DZ',        'B' : '[fc] Q / DZ'},
-        'SREL (T)-D/uaC{T,Q}Z'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z', 'B' : 'SREL CCSD/uaC{T,Q}Z'}
+        'SREL (T)-D/uaC{T,Q}Z'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z', 'B' : 'SREL CCSD/uaC{T,Q}Z'},
+        'SREL (T)-D/uaCQZ'      : { 'A' : 'SREL CCSD(T)/uaCQZ',     'B' : 'SREL CCSD/uaCQZ'}
     })
 
+    # Correlation correction data with Helgaker
+    heat = minus(heat, {
+        '[fc] (T)-D/aC{5,6}Z : Helgaker'   : { 'A' : '[fc] CCSD(T)/aC{5,6}Z : Helgaker',  'B' : '[fc] CCSD/aC{5,6}Z : Helgaker' }, 
+        '[cv] (T)-D/aC{5,6}Z : Helgaker'   : { 'A' : '[cv] CCSD(T)/aC{5,6}Z : Helgaker',  'B' : '[cv] CCSD/aC{5,6}Z : Helgaker' }, 
+        '[fc] T-(T)/{5,6}Z : Helgaker'     : { 'A' : '[fc] CCSDT/{5,6}Z : Helgaker',      'B' : '[fc] CCSD(T)/{5,6}Z : Helgaker' }, 
+        '[cv] T-(T)/aC{T,Q}Z : Helgaker'   : { 'A' : '[cv] CCSDT/aC{T,Q}Z : Helgaker',    'B' : '[cv] CCSD(T)/aC{T,Q}Z : Helgaker' },
+        '[fc] (Q)L-T/{Q,5}Z : Helgaker'    : { 'A' : '[fc] CCSDT(Q)L/{Q,5}Z : Helgaker',  'B' : '[fc] CCSDT/{Q,5}Z : Helgaker'},
+        'SREL (T)-D/uaC{T,Q}Z : Helgaker'  : { 'A' : 'SREL CCSD(T)/uaC{T,Q}Z : Helgaker', 'B' : 'SREL CCSD/uaC{T,Q}Z : Helgaker'}
+    })
+
+    # Summary quantities used in uncertainty estimation 
+    heat['SCF/CBS'] = heat["SCF/aC6Z"]
+
+    heat['[ae] CCSD/CBS'] = heat['[fc] CCSD/aC{6,7}Z'] + heat['[cv] CCSD/aC{5,6}Z'] 
+
+    heat['[ae] (T)-D/CBS'] = heat['[fc] (T)-D/aC{5,6}Z'] + heat['[cv] (T)-D/aC{5,6}Z']
+
+    # CBS combined quantitites 
+    heat = plus(heat, {
+        '[fc] (Q)L-(T)/CBS'     : { 'A' : '[fc] T-(T)/{5,6}Z',      'B' : '[fc] (Q)L-T/{Q,5}Z' },
+        '[cv] (Q)L-(T)/CBS'     : { 'A' : '[cv] T-(T)/aC{T,Q}Z',    'B' : '[cv] (Q)L-T/aCTZ' },
+        '[fc] (P)L-(Q)L/CBS'    : { 'A' : '[fc] Q-(Q)L/TZ',         'B' : '[fc] (P)L-Q/DZ' }
+    })
+
+    # reconstructed all-electron energies
+    heat = plus(heat, {
+        '[ae] (T)-D/CBS'      : { 'A' : '[fc] (T)-D/aC{5,6}Z',  'B' : '[cv] (T)-D/aC{5,6}Z' },
+        '[ae] (Q)L-(T)/CBS'   : { 'A' : '[fc] (Q)L-(T)/CBS',    'B' : '[cv] (Q)L-(T)/CBS' },
+    })
 
     # Form total energies and recipe list
     recipe_list = [
@@ -383,7 +533,7 @@ if __name__ == "__main__":
         'SREL SCF/uaCQZ', 'SREL CCSD/uaC{T,Q}Z', 'SREL (T)-D/uaC{T,Q}Z',
         'DBOC SCF / aCTZ', 'DBOC [ae] CCSD-SCF/aCTZ', 'DBOC [fc] T-D/TZ', 'DBOC [fc] Q-T/DZ',
         'SO (Hill Van Vleck/Hougen)',
-        "PETER Anharmonic" 
+        'ZPE Best' 
     ]
 
     heat['Total'] = sum(heat[item] for item in recipe_list)
@@ -393,6 +543,14 @@ if __name__ == "__main__":
 
     # append total to the recipe list for the reaction analysis 
     recipe_list.append('Total')
+
+    #add ALL constructed colulmns to the list, and remove duplicates
+    recipe_list.extend(heat.columns.to_list())
+    recipe_list = list(dict.fromkeys(recipe_list))
+
+    #add estimated bond order (note division by au2cm to counter later multiplication) 
+    heat['Bond order'] = heat['Bond order'] / au2cm
+    recipe_list.append('Bond order')
 
     tae_data = reaction_data(heat, heat_tae, recipe_list, conversion = au2cm)
     anl_data = reaction_data(heat, heat_anl, recipe_list, conversion = au2cm)
@@ -427,24 +585,24 @@ if __name__ == "__main__":
     print(f"TAE Mean error : {tae_data["Err"].mean()}")
     print(f"TAE Std.Dev. error : {tae_data["Err"].std(ddof=1)}")
     print(f"TAE MAE :, {tae_data["|Err|"].mean()}")
-    print(f"TAE 2*sigma : {2*l2d(tae_data["Err"])}")
+    print(f"TAE 2*sigma : {conf_95(tae_data["Err"])}")
     print("")
     print("ANL data\n", anl_data)
     print(f"ANL Mean error : {anl_data["Err"].mean()}")
     print(f"ANL Std.Dev. : {anl_data["Err"].std(ddof=1)}")
     print(f"ANL MAE :, {anl_data["|Err|"].mean()}")
-    print(f"ANL 2*sigma : {2*l2d(anl_data["Err"])}")
+    print(f"ANL 2*sigma : {conf_95(anl_data["Err"])}")
     print("")
     print("BDE data\n", bde_data)
     print(f"BDE Mean error : {bde_data["Err"].mean()}")
     print(f"BDE Std.Dev.: {bde_data["Err"].std(ddof=1)}")
     print(f"BDE MAE :, {bde_data["|Err|"].mean()}")
-    print(f"BDE 2*sigma : {2*l2d(bde_data["Err"])}")
+    print(f"BDE 2*sigma : {conf_95(bde_data["Err"])}")
     print("")
     print("ALL data\n", all_data)
     print(f"ALL Mean error : {all_data["Err"].mean()}")
     print(f"ALL Std.Dev. : {all_data["Err"].std(ddof=1)}")
     print(f"ALL MAE :, {all_data["|Err|"].mean()}")
-    print(f"ALL 2*sigma : {2*l2d(all_data["Err"])}")
+    print(f"ALL 2*sigma : {conf_95(all_data["Err"])}")
 
 
