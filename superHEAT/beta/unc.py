@@ -164,7 +164,39 @@ if __name__ == "__main__":
 
         test[['Semiempirical NREE', 'Semiempirical NREE unc', 'Semiempirical NREE unc (no SO unc)']].to_csv(f"nree_{name}.csv")
 
+    #####################################################################
+    #
+    # Valence CCSD estimates
+    #
+    for name in uncs:
+        unc = uncs[name]
+        test = tests[name]
 
+        test['Semiempirical [fc] CCSD'] = test['ATcT Values'] - test['SO'] - test['ZPE Best'] - test['DBOC CBS'] - test['SREL CBS'] - test['SCF/CBS'] - test['(T)-D/CBS'] - test['(Q)L-(T)/CBS'] - test['(P)L-(Q)L/CBS'] - test['[cv] CCSD/aC{5,6}Z']
+
+        unc['[cv] CCSD/CBS'] = np.maximum(np.abs(test["[cv] CCSD/aC{5,6}Z"] - test["[cv] CCSD/aC{Q,5}Z"]), 
+                                          np.abs(test["[cv] CCSD/aC{5,6}Z"] - test["[cv] CCSD/aC{5,6}Z : Helgaker"]))
+        test['Semiempirical [fc] CCSD unc.'] = np.sqrt(unc['SCF BSIE']**2 + unc['[cv] CCSD/CBS']**2 +  unc['(T)-D BSIE']**2 + unc['(Q)L-(T) BSIE']**2 + unc['(P)L-(Q)L BSIE']**2 + unc['Post-(P)L HLC']**2 + unc['SREL SCF BSIE']**2 + unc['SREL CCSD BSIE']**2 + unc['SREL (T)-D BSIE']**2 + unc['SREL HLC est']**2 + unc['DBOC unc est']**2 + unc['2nd Order SO est']**2 + unc['ZPE Harmonic']**2 + unc['ZPE Anarmonic']**2)
+
+        test['Semiempirical [fc] CCSD unc. (no SO unc)'] = np.sqrt(unc['SCF BSIE']**2 + unc['[cv] CCSD/CBS']**2 + unc['(T)-D BSIE']**2 + unc['(Q)L-(T) BSIE']**2 + unc['(P)L-(Q)L BSIE']**2 + unc['Post-(P)L HLC']**2 + unc['SREL SCF BSIE']**2 + unc['SREL CCSD BSIE']**2 + unc['SREL (T)-D BSIE']**2 + unc['SREL HLC est']**2 + unc['DBOC unc est']**2 + unc['ZPE Harmonic']**2 + unc['ZPE Anarmonic']**2)
+         
+        test[['Semiempirical [fc] CCSD', 'Semiempirical [fc] CCSD unc.', 'Semiempirical [fc] CCSD unc. (no SO unc)']].to_csv(f'ccsd_{name}.csv')
+
+    #####################################################################
+    #
+    # ZPE estimates
+    #
+    for name in uncs:
+        unc = uncs[name]
+        test = tests[name]
+
+        test['Semiempirical ZPE'] = test['ATcT Values'] - test['SO'] - test['DBOC CBS'] - test['SREL CBS'] - test['SCF/CBS'] - test['CCSD/CBS'] - test['(T)-D/CBS'] - test['(Q)L-(T)/CBS'] - test['(P)L-(Q)L/CBS'] 
+
+
+        test['Semiempirical ZPE Unc'] = np.sqrt(unc['SCF BSIE']**2 + unc['CCSD BSIE']**2 + unc['(T)-D BSIE']**2 + unc['(Q)L-(T) BSIE']**2 + unc['(P)L-(Q)L BSIE']**2 + unc['Post-(P)L HLC']**2 + unc['SREL SCF BSIE']**2 + unc['SREL CCSD BSIE']**2 + unc['SREL (T)-D BSIE']**2 + unc['SREL HLC est']**2 + unc['DBOC unc est']**2 + unc['2nd Order SO est']**2)
+        test['Semiempirical ZPE Unc (no SO unc)'] = np.sqrt(unc['SCF BSIE']**2 + unc['CCSD BSIE']**2 + unc['(T)-D BSIE']**2 + unc['(Q)L-(T) BSIE']**2 + unc['(P)L-(Q)L BSIE']**2 + unc['Post-(P)L HLC']**2 + unc['SREL SCF BSIE']**2 + unc['SREL CCSD BSIE']**2 + unc['SREL (T)-D BSIE']**2 + unc['SREL HLC est']**2 + unc['DBOC unc est']**2)
+
+        test[['Semiempirical ZPE', 'Semiempirical ZPE Unc', 'Semiempirical ZPE Unc (no SO unc)']].to_csv(f"zpe_{name}.csv")
 
 
     #Save to files
